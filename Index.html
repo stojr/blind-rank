@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Blind Rank 5 of 10</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background: #0b0c10; color: #e8e8e8; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; padding-bottom: 92px; }
+    h1 { font-size: 18px; margin: 0 0 12px; line-height: 1.2; }
+
+    .row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .card { background: #141622; border: 1px solid #2a2e45; border-radius: 12px; padding: 12px; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    input[type="file"] { color: #e8e8e8; max-width: 100%; }
+
+    button {
+      background: #2a57ff;
+      color: #fff;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 16px;
+      touch-action: manipulation;
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .danger { background: #ff3b3b; }
+
+    .sub { opacity: 0.85; font-size: 13px; line-height: 1.4; }
+    .muted { opacity: 0.7; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1.1fr 0.9fr; } }
+
+    .stage { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; }
+
+    .imgBox, .rankBox {
+      background: #0f1120;
+      border: 1px solid #2a2e45;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .imgBox img { width: 100%; border-radius: 10px; display: block; max-height: 58vh; object-fit: contain; }
+
+    .rankHeader { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .rankHeader .title { font-weight: 800; }
+
+    .pill {
+      background: #1a1d2e;
+      border: 1px solid #2a2e45;
+      color: #e8e8e8;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      opacity: 0.95;
+      white-space: nowrap;
+    }
+
+    .divider { height: 1px; background: #2a2e45; margin: 12px 0; }
+
+    .slots { margin-top: 10px; display: grid; gap: 10px; }
+    .slot {
+      border: 1px dashed #3a3f60;
+      border-radius: 10px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 10px;
+      align-items: center;
+      min-height: 74px;
+    }
+    .slot img { width: 88px; height: 60px; object-fit: cover; border-radius: 8px; display: block; }
+    .slot .label { font-size: 14px; opacity: 0.92; }
+
+    .thumbs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .thumbs img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; border: 1px solid #2a2e45; }
+
+    /* Sticky placement bar for mobile */
+    .stickyBar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 17, 32, 0.98);
+      border-top: 1px solid #2a2e45;
+      padding: 10px 12px;
+      display: none;
+      z-index: 9999;
+    }
+    .stickyBar .sub { margin-bottom: 8px; }
+    .stickyBtns { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 2px; }
+    .stickyBtns button { flex: 0 0 auto; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Blind ranking. 5 chosen from your 10 images.</h1>
+
+    <div class="row">
+      <div class="card">
+        <div class="controls">
+          <input id="fileInput" type="file" accept="image/*" multiple />
+          <button id="startBtn" disabled>Start</button>
+          <button id="resetBtn" class="danger" disabled>Reset</button>
+          <span id="status" class="pill">Load 10 images to begin</span>
+        </div>
+        <div class="sub" id="help">
+          Steps.
+          1. Select 10 images.
+          2. Press Start.
+          3. Place each image into the ranking as it appears.
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="stage">
+            <div class="imgBox">
+              <div class="rankHeader">
+                <div class="title">Current image</div>
+                <div class="pill" id="progressPill">0 of 5</div>
+              </div>
+              <div class="divider"></div>
+              <img id="currentImg" alt="" style="display:none" />
+              <div id="emptyStage" class="sub muted">Nothing loaded yet.</div>
+            </div>
+
+            <div class="rankBox">
+              <div class="rankHeader">
+                <div class="title">Your ranking</div>
+                <div class="pill" id="rankCountPill">0 placed</div>
+              </div>
+              <div class="divider"></div>
+              <div class="slots" id="slots"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="rankHeader">
+            <div class="title">All 10 loaded</div>
+            <div class="pill" id="loadedPill">0 of 10</div>
+          </div>
+          <div class="divider"></div>
+          <div class="thumbs" id="thumbs"></div>
+          <div class="divider"></div>
+          <div class="sub muted">
+            Notes.
+            - The app picks 5 at random from the 10.
+            - The remaining 5 stay hidden during ranking.
+            - Reset clears everything.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stickyBar" id="stickyBar">
+    <div class="sub" id="stickyLabel">Choose a rank position</div>
+    <div class="stickyBtns" id="stickyButtons"></div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("fileInput")
+    const startBtn = document.getElementById("startBtn")
+    const resetBtn = document.getElementById("resetBtn")
+    const statusEl = document.getElementById("status")
+    const thumbsEl = document.getElementById("thumbs")
+    const loadedPill = document.getElementById("loadedPill")
+
+    const currentImg = document.getElementById("currentImg")
+    const emptyStage = document.getElementById("emptyStage")
+    const slotsEl = document.getElementById("slots")
+
+    const progressPill = document.getElementById("progressPill")
+    const rankCountPill = document.getElementById("rankCountPill")
+
+    const stickyBar = document.getElementById("stickyBar")
+    const stickyButtons = document.getElementById("stickyButtons")
+    const stickyLabel = document.getElementById("stickyLabel")
+
+    let allImages = []
+    let pickedFive = []
+    let stepIndex = 0
+    let ranking = []
+
+    function clearUrls(list) {
+      for (const item of list) {
+        if (item && item.url) URL.revokeObjectURL(item.url)
+      }
+    }
+
+    function shuffle(arr) {
+      const a = arr.slice()
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        const tmp = a[i]
+        a[i] = a[j]
+        a[j] = tmp
+      }
+      return a
+    }
+
+    function setStatus(text) { statusEl.textContent = text }
+
+    function renderThumbs() {
+      thumbsEl.innerHTML = ""
+      for (const item of allImages) {
+        const img = document.createElement("img")
+        img.src = item.url
+        img.alt = item.name
+        thumbsEl.appendChild(img)
+      }
+      loadedPill.textContent = `${allImages.length} of 10`
+    }
+
+    function renderSlots() {
+      slotsEl.innerHTML = ""
+      const totalSlots = 5
+      for (let i = 0; i < totalSlots; i++) {
+        const slot = document.createElement("div")
+        slot.className = "slot"
+
+        const left = document.createElement("div")
+        const right = document.createElement("div")
+        right.className = "label"
+
+        const rankLabel = `Rank ${i + 1}`
+
+        if (ranking[i]) {
+          const img = document.createElement("img")
+          img.src = ranking[i].url
+          img.alt = ranking[i].name
+          left.appendChild(img)
+          right.textContent = `${rankLabel}. ${ranking[i].name}`
+        } else {
+          const placeholder = document.createElement("div")
+          placeholder.style.width = "88px"
+          placeholder.style.height = "60px"
+          placeholder.style.borderRadius = "8px"
+          placeholder.style.border = "1px solid #2a2e45"
+          placeholder.style.background = "#0b0c10"
+          left.appendChild(placeholder)
+          right.textContent = `${rankLabel}. Empty`
+          right.classList.add("muted")
+        }
+
+        slot.appendChild(left)
+        slot.appendChild(right)
+        slotsEl.appendChild(slot)
+      }
+
+      rankCountPill.textContent = `${ranking.length} placed`
+    }
+
+    function renderPlacementButtons() {
+      stickyButtons.innerHTML = ""
+      const positions = ranking.length + 1
+      for (let pos = 1; pos <= positions; pos++) {
+        const btn = document.createElement("button")
+        btn.textContent = `Place at ${pos}`
+        btn.addEventListener("click", () => placeAt(pos - 1))
+        stickyButtons.appendChild(btn)
+      }
+      stickyLabel.textContent = `Place image ${stepIndex + 1} of 5`
+    }
+
+    function showStep() {
+      renderSlots()
+
+      if (stepIndex >= 5) {
+        currentImg.style.display = "none"
+        emptyStage.style.display = "block"
+        emptyStage.textContent = "Done. Final ranking shown below."
+        stickyBar.style.display = "none"
+        setStatus("Finished")
+        startBtn.disabled = false
+        startBtn.textContent = "Run again"
+        progressPill.textContent = "5 of 5"
+        return
+      }
+
+      const item = pickedFive[stepIndex]
+      currentImg.src = item.url
+      currentImg.alt = item.name
+      currentImg.style.display = "block"
+      emptyStage.style.display = "none"
+
+      progressPill.textContent = `${stepIndex + 1} of 5`
+      setStatus("Ranking in progress")
+
+      renderPlacementButtons()
+      stickyBar.style.display = "block"
+    }
+
+    function placeAt(index) {
+      const item = pickedFive[stepIndex]
+      ranking.splice(index, 0, item)
+      if (ranking.length > 5) ranking = ranking.slice(0, 5)
+
+      stepIndex += 1
+      showStep()
+
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
+
+    function start() {
+      pickedFive = shuffle(allImages).slice(0, 5)
+      stepIndex = 0
+      ranking = []
+      showStep()
+      resetBtn.disabled = false
+    }
+
+    function resetAll() {
+      clearUrls(allImages)
+      allImages = []
+      pickedFive = []
+      ranking = []
+      stepIndex = 0
+
+      fileInput.value = ""
+      renderThumbs()
+      renderSlots()
+
+      currentImg.style.display = "none"
+      emptyStage.style.display = "block"
+      emptyStage.textContent = "Nothing loaded yet."
+      stickyBar.style.display = "none"
+
+      startBtn.disabled = true
+      startBtn.textContent = "Start"
+      resetBtn.disabled = true
+      setStatus("Load 10 images to begin")
+      progressPill.textContent = "0 of 5"
+      rankCountPill.textContent = "0 placed"
+    }
+
+    fileInput.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files || [])
+
+      clearUrls(allImages)
+      allImages = files.slice(0, 10).map((f, idx) => ({
+        id: `${Date.now()}-${idx}`,
+        name: f.name || `Image ${idx + 1}`,
+        file: f,
+        url: URL.createObjectURL(f)
+      }))
+
+      renderThumbs()
+      renderSlots()
+
+      if (allImages.length === 10) {
+        startBtn.disabled = false
+        setStatus("Ready. Press Start")
+      } else {
+        startBtn.disabled = true
+        setStatus(`Select 10 images. Loaded ${allImages.length}`)
+      }
+
+      resetBtn.disabled = allImages.length === 0
+    })
+
+    startBtn.addEventListener("click", () => start())
+    resetBtn.addEventListener("click", () => resetAll())
+
+    renderSlots()
+  </script>
+</body>
+</html>
