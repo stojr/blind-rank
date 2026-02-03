@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0c10" />
   <title>BCE Comics Pod | Blind Top 5</title>
+
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background: #0b0c10; color: #e8e8e8; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; padding-bottom: 90px; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; padding-bottom: 96px; }
 
-    /* Branding */
     .brand {
       border: 1px solid #2a2e45;
       border-radius: 14px;
@@ -87,7 +88,6 @@
       white-space: nowrap;
     }
 
-    /* Layout */
     .card { background: #141622; border: 1px solid #2a2e45; border-radius: 12px; padding: 12px; }
     .row { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -109,49 +109,49 @@
     }
     button:disabled { opacity: 0.45; cursor: not-allowed; }
     .danger { background: #ff3b3b; }
+    .ghost { background: #1a1d2e; border: 1px solid #2a2e45; }
     .sub { opacity: 0.85; font-size: 13px; line-height: 1.35; }
-    .muted { opacity: 0.7; }
 
     .divider { height: 1px; background: #2a2e45; margin: 12px 0; }
 
     .panelTitle { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
     .panelTitle .t { font-weight: 900; }
 
-    /* Picked 5 */
-    .pickedGrid {
+    .currentWrap {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
-    @media (min-width: 700px) { .pickedGrid { grid-template-columns: repeat(3, 1fr); } }
-
-    .pickedCard {
+    .currentCard {
       background: #0f1120;
       border: 1px solid #2a2e45;
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
-      cursor: pointer;
       user-select: none;
     }
-    .pickedCard.selected { outline: 3px solid rgba(255,59,59,0.9); }
-    .pickedCard.placed { opacity: 0.55; cursor: default; }
-    .pickedImg {
+    .currentCard.dragging { opacity: 0.55; }
+    .currentImg {
       width: 100%;
       aspect-ratio: 1 / 1;
       object-fit: cover;
       display: block;
     }
-    .pickedMeta { padding: 10px; display: grid; gap: 6px; }
-    .pickedName {
-      font-size: 12px;
+    .currentMeta {
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .currentName {
+      font-size: 13px;
       opacity: 0.9;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
+      max-width: 520px;
     }
-    .pickedSmall { font-size: 12px; opacity: 0.75; }
 
-    /* Rank slots */
     .rankSlots { display: grid; gap: 10px; }
     .slot {
       background: #0f1120;
@@ -163,9 +163,9 @@
       gap: 10px;
       align-items: center;
       min-height: 78px;
-      cursor: pointer;
     }
-    .slot.filled { border-style: solid; cursor: default; }
+    .slot.filled { border-style: solid; }
+    .slot.dropReady { outline: 3px solid rgba(42,87,255,0.9); }
     .slotThumb {
       width: 92px;
       height: 62px;
@@ -186,11 +186,9 @@
     }
     .slotHint { font-size: 12px; opacity: 0.7; }
 
-    /* All 10 thumbs */
     .thumbs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
     .thumbs img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; border: 1px solid #2a2e45; }
 
-    /* Sticky bar */
     .stickyBar {
       position: fixed;
       left: 0;
@@ -212,11 +210,9 @@
       flex-wrap: wrap;
     }
     .stickyMsg { font-size: 13px; opacity: 0.9; }
-
-    /* BCE colors (red accent) */
-    .accent { color: #ff3b3b; }
   </style>
 </head>
+
 <body>
   <div class="wrap">
 
@@ -242,30 +238,40 @@
         <div class="controls">
           <input id="fileInput" type="file" accept="image/*" multiple />
           <button id="startBtn" disabled>Start</button>
-          <button id="rerollBtn" disabled>Reroll 5</button>
+          <button id="newRunBtn" class="ghost" disabled>New run</button>
+          <button id="exportBtn" class="ghost" disabled>Export</button>
           <button id="resetBtn" class="danger" disabled>Reset</button>
           <span class="pill" id="progressPill">0 of 5 placed</span>
         </div>
         <div class="divider"></div>
         <div class="sub">
-          Tap one of the five images to select it. Then tap an empty rank slot to place it. Each slot locks after one placement.
+          Place the current image into any open rank slot. Drag onto a slot, or tap a slot to place.
         </div>
       </div>
 
       <div class="grid">
         <div class="card">
           <div class="panelTitle">
-            <div class="t">Your five random images</div>
-            <div class="pill" id="selectedPill">No image selected</div>
+            <div class="t">Current image</div>
+            <div class="pill" id="queuePill">0 of 5</div>
           </div>
           <div class="divider"></div>
-          <div id="pickedGrid" class="pickedGrid"></div>
+
+          <div class="currentWrap">
+            <div id="currentCard" class="currentCard" draggable="false" aria-label="Current image">
+              <img id="currentImg" class="currentImg" alt="" />
+              <div class="currentMeta">
+                <div id="currentName" class="currentName">Waiting</div>
+                <span class="pill" id="placeHint">Place it</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="card">
           <div class="panelTitle">
             <div class="t">Rank slots</div>
-            <div class="pill" id="slotPill">Tap a slot</div>
+            <div class="pill" id="slotPill">Drop or tap</div>
           </div>
           <div class="divider"></div>
           <div id="rankSlots" class="rankSlots"></div>
@@ -285,44 +291,47 @@
 
   <div class="stickyBar" id="stickyBar">
     <div class="stickyRow">
-      <div class="stickyMsg" id="stickyMsg">Select an image</div>
+      <div class="stickyMsg" id="stickyMsg">Load 10 images</div>
       <div class="pill" id="stickyPill">0 of 5 placed</div>
     </div>
   </div>
 
   <script>
-    // Branding paths. Keep these exact if you used the filenames I listed.
-    const BRAND_LOGO_SRC = "./bce-logo.png";
+    // Root files in your repo
+    const BRAND_LOGO_SRC = "./bce-logo.jpeg";
     const BRAND_BANNER_SRC = "./bce-banner.png";
 
     const brandLogoEl = document.getElementById("brandLogo");
     const brandBannerEl = document.getElementById("brandBanner");
-
     brandLogoEl.src = BRAND_LOGO_SRC;
     brandBannerEl.style.backgroundImage = `url('${BRAND_BANNER_SRC}')`;
 
     const fileInput = document.getElementById("fileInput");
     const startBtn = document.getElementById("startBtn");
-    const rerollBtn = document.getElementById("rerollBtn");
+    const newRunBtn = document.getElementById("newRunBtn");
+    const exportBtn = document.getElementById("exportBtn");
     const resetBtn = document.getElementById("resetBtn");
 
     const statusEl = document.getElementById("status");
     const loadedPill = document.getElementById("loadedPill");
     const progressPill = document.getElementById("progressPill");
-    const selectedPill = document.getElementById("selectedPill");
+    const queuePill = document.getElementById("queuePill");
     const slotPill = document.getElementById("slotPill");
-
-    const thumbsEl = document.getElementById("thumbs");
-    const pickedGridEl = document.getElementById("pickedGrid");
-    const rankSlotsEl = document.getElementById("rankSlots");
-
     const stickyBar = document.getElementById("stickyBar");
     const stickyMsg = document.getElementById("stickyMsg");
     const stickyPill = document.getElementById("stickyPill");
 
+    const thumbsEl = document.getElementById("thumbs");
+    const rankSlotsEl = document.getElementById("rankSlots");
+
+    const currentCardEl = document.getElementById("currentCard");
+    const currentImgEl = document.getElementById("currentImg");
+    const currentNameEl = document.getElementById("currentName");
+    const placeHintEl = document.getElementById("placeHint");
+
     let allImages = [];
     let pickedFive = [];
-    let selectedId = null;
+    let currentIndex = 0;
 
     // slots[0] is rank 1, slots[4] is rank 5
     let slots = [null, null, null, null, null];
@@ -350,19 +359,16 @@
       return slots.filter(Boolean).length;
     }
 
-    function updateProgress() {
+    function updateProgressUI() {
       const n = placedCount();
       progressPill.textContent = `${n} of 5 placed`;
       stickyPill.textContent = `${n} of 5 placed`;
+      exportBtn.disabled = (n !== 5);
+    }
 
-      if (n === 5) {
-        setStatus("Done");
-        stickyMsg.textContent = "Finished";
-        selectedPill.textContent = "No image selected";
-        selectedId = null;
-      } else {
-        setStatus("Place your top 5");
-      }
+    function updateQueueUI() {
+      const shown = Math.min(currentIndex + 1, 5);
+      queuePill.textContent = `${shown} of 5`;
     }
 
     function renderThumbs() {
@@ -376,57 +382,6 @@
       loadedPill.textContent = `${allImages.length} of 10`;
     }
 
-    function isPickedPlaced(pickedId) {
-      return slots.some(s => s && s.id === pickedId);
-    }
-
-    function renderPicked() {
-      pickedGridEl.innerHTML = "";
-
-      for (const item of pickedFive) {
-        const card = document.createElement("div");
-        card.className = "pickedCard";
-
-        const placed = isPickedPlaced(item.id);
-        if (placed) card.classList.add("placed");
-        if (selectedId === item.id) card.classList.add("selected");
-
-        card.addEventListener("click", () => {
-          if (placedCount() === 5) return;
-          if (placed) return;
-
-          selectedId = item.id;
-          selectedPill.textContent = `Selected: ${item.name}`;
-          stickyMsg.textContent = "Tap a rank slot to place the selected image";
-          renderPicked();
-        });
-
-        const img = document.createElement("img");
-        img.className = "pickedImg";
-        img.src = item.url;
-        img.alt = item.name;
-
-        const meta = document.createElement("div");
-        meta.className = "pickedMeta";
-
-        const name = document.createElement("div");
-        name.className = "pickedName";
-        name.textContent = item.name;
-
-        const small = document.createElement("div");
-        small.className = "pickedSmall";
-        small.textContent = placed ? "Placed" : "Tap to select";
-
-        meta.appendChild(name);
-        meta.appendChild(small);
-
-        card.appendChild(img);
-        card.appendChild(meta);
-
-        pickedGridEl.appendChild(card);
-      }
-    }
-
     function renderSlots() {
       rankSlotsEl.innerHTML = "";
 
@@ -438,24 +393,24 @@
 
         slot.addEventListener("click", () => {
           slotPill.textContent = `Rank ${rankNum}`;
-          if (placedCount() === 5) return;
+          placeIntoSlot(i);
+        });
+
+        slot.addEventListener("dragover", (e) => {
           if (slots[i]) return;
+          if (!currentCardEl.draggable) return;
+          e.preventDefault();
+          slot.classList.add("dropReady");
+        });
 
-          if (!selectedId) {
-            stickyMsg.textContent = "Select an image first";
-            return;
-          }
+        slot.addEventListener("dragleave", () => {
+          slot.classList.remove("dropReady");
+        });
 
-          const item = pickedFive.find(p => p.id === selectedId);
-          if (!item) return;
-
-          slots[i] = item;
-          selectedId = null;
-          selectedPill.textContent = "No image selected";
-          stickyMsg.textContent = "Select the next image";
-          renderPicked();
-          renderSlots();
-          updateProgress();
+        slot.addEventListener("drop", (e) => {
+          e.preventDefault();
+          slot.classList.remove("dropReady");
+          placeIntoSlot(i);
         });
 
         const thumb = document.createElement("img");
@@ -480,7 +435,7 @@
 
         const hint = document.createElement("div");
         hint.className = "slotHint";
-        hint.textContent = slots[i] ? "Locked" : "Tap to place selected image";
+        hint.textContent = slots[i] ? "Locked" : "Tap or drop current image here";
 
         text.appendChild(rank);
         text.appendChild(name);
@@ -498,26 +453,88 @@
       }
     }
 
-    function startRun() {
-      pickedFive = shuffle(allImages).slice(0, 5);
-      slots = [null, null, null, null, null];
-      selectedId = null;
+    function showCurrent() {
+      const done = placedCount() === 5;
 
-      selectedPill.textContent = "No image selected";
-      slotPill.textContent = "Tap a slot";
-      stickyBar.style.display = "block";
-      stickyMsg.textContent = "Select an image";
+      if (done) {
+        setStatus("Done");
+        stickyMsg.textContent = "Done. Export ready.";
+        currentCardEl.draggable = false;
+        currentCardEl.classList.remove("dragging");
+        currentImgEl.src = "";
+        currentImgEl.alt = "";
+        currentNameEl.textContent = "Finished";
+        placeHintEl.textContent = "Export";
+        return;
+      }
+
+      const item = pickedFive[currentIndex];
+      if (!item) {
+        setStatus("Place your top 5");
+        stickyMsg.textContent = "Place the current image";
+        return;
+      }
+
       setStatus("Place your top 5");
+      stickyMsg.textContent = "Place the current image";
+      currentImgEl.src = item.url;
+      currentImgEl.alt = item.name;
+      currentNameEl.textContent = item.name;
+      placeHintEl.textContent = "Drag or tap a slot";
+      currentCardEl.draggable = true;
 
-      renderPicked();
-      renderSlots();
-      updateProgress();
-
-      rerollBtn.disabled = false;
-      resetBtn.disabled = false;
+      updateQueueUI();
     }
 
-    function reroll() {
+    function advance() {
+      currentIndex += 1;
+      showCurrent();
+    }
+
+    function placeIntoSlot(slotIndex) {
+      if (slots[slotIndex]) return;
+      if (placedCount() === 5) return;
+
+      const item = pickedFive[currentIndex];
+      if (!item) return;
+
+      slots[slotIndex] = item;
+      renderSlots();
+      updateProgressUI();
+      advance();
+    }
+
+    async function requestPortraitLock() {
+      try {
+        if (!screen.orientation || !screen.orientation.lock) return;
+        await screen.orientation.lock("portrait");
+      } catch (_) {
+        // ignore
+      }
+    }
+
+    function startRun() {
+      requestPortraitLock();
+
+      pickedFive = shuffle(allImages).slice(0, 5);
+      currentIndex = 0;
+      slots = [null, null, null, null, null];
+
+      stickyBar.style.display = "block";
+      stickyMsg.textContent = "Place the current image";
+
+      setStatus("Place your top 5");
+      newRunBtn.disabled = false;
+      resetBtn.disabled = false;
+      exportBtn.disabled = true;
+
+      renderSlots();
+      updateProgressUI();
+      updateQueueUI();
+      showCurrent();
+    }
+
+    function newRun() {
       if (allImages.length !== 10) return;
       startRun();
     }
@@ -526,25 +543,214 @@
       clearUrls(allImages);
       allImages = [];
       pickedFive = [];
+      currentIndex = 0;
       slots = [null, null, null, null, null];
-      selectedId = null;
 
       fileInput.value = "";
       thumbsEl.innerHTML = "";
-      pickedGridEl.innerHTML = "";
       rankSlotsEl.innerHTML = "";
 
       loadedPill.textContent = "0 of 10";
       progressPill.textContent = "0 of 5 placed";
-      selectedPill.textContent = "No image selected";
-      slotPill.textContent = "Tap a slot";
+      queuePill.textContent = "0 of 5";
+      slotPill.textContent = "Drop or tap";
 
       stickyBar.style.display = "none";
+      stickyMsg.textContent = "Load 10 images";
+      stickyPill.textContent = "0 of 5 placed";
+
       setStatus("Load 10 images");
 
+      currentCardEl.draggable = false;
+      currentImgEl.src = "";
+      currentImgEl.alt = "";
+      currentNameEl.textContent = "Waiting";
+      placeHintEl.textContent = "Place it";
+
       startBtn.disabled = true;
-      rerollBtn.disabled = true;
+      newRunBtn.disabled = true;
+      exportBtn.disabled = true;
       resetBtn.disabled = true;
+    }
+
+    currentCardEl.addEventListener("dragstart", (e) => {
+      if (!currentCardEl.draggable) {
+        e.preventDefault();
+        return;
+      }
+      currentCardEl.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", "current");
+    });
+
+    currentCardEl.addEventListener("dragend", () => {
+      currentCardEl.classList.remove("dragging");
+      for (const el of document.querySelectorAll(".slot")) el.classList.remove("dropReady");
+    });
+
+    function buildExportCanvas() {
+      const width = 1080;
+      const height = 1920;
+      const padding = 56;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+
+      const bg = ctx.createLinearGradient(0, 0, 0, height);
+      bg.addColorStop(0, "#0b0c10");
+      bg.addColorStop(1, "#141622");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.font = "900 64px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.fillText("BCE COMICS POD", padding, 120);
+
+      ctx.fillStyle = "rgba(255,255,255,0.80)";
+      ctx.font = "700 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.fillText("Blind Top 5", padding, 172);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding, 206);
+      ctx.lineTo(width - padding, 206);
+      ctx.stroke();
+
+      const cardW = width - padding * 2;
+      const cardH = 280;
+      const gap = 34;
+      let y = 250;
+
+      return { canvas, ctx, width, height, padding, cardW, cardH, gap, y };
+    }
+
+    function drawRoundedRect(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+    }
+
+    function loadImageFromUrl(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    async function exportRanking() {
+      if (placedCount() !== 5) return;
+
+      exportBtn.disabled = true;
+      exportBtn.textContent = "Exporting";
+
+      const layout = buildExportCanvas();
+      const { canvas, ctx, padding, cardW, cardH, gap } = layout;
+      let y = layout.y;
+
+      for (let i = 0; i < 5; i++) {
+        const item = slots[i];
+        const rankNum = i + 1;
+
+        ctx.fillStyle = "rgba(15,17,32,0.98)";
+        drawRoundedRect(ctx, padding, y, cardW, cardH, 22);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.font = "900 44px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillText(`Rank ${rankNum}`, padding + 26, y + 66);
+
+        if (item) {
+          const img = await loadImageFromUrl(item.url);
+
+          const thumbSize = 200;
+          const tx = padding + 26;
+          const ty = y + 92;
+
+          drawRoundedRect(ctx, tx, ty, thumbSize, thumbSize, 18);
+          ctx.save();
+          ctx.clip();
+
+          const ir = img.width / img.height;
+          let dw = thumbSize, dh = thumbSize;
+          let sx = 0, sy = 0, sw = img.width, sh = img.height;
+
+          if (ir > 1) {
+            sh = img.height;
+            sw = img.height;
+            sx = Math.floor((img.width - sw) / 2);
+          } else {
+            sw = img.width;
+            sh = img.width;
+            sy = Math.floor((img.height - sh) / 2);
+          }
+
+          ctx.drawImage(img, sx, sy, sw, sh, tx, ty, dw, dh);
+          ctx.restore();
+
+          ctx.fillStyle = "rgba(255,255,255,0.85)";
+          ctx.font = "700 32px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+
+          const maxW = cardW - (26 + thumbSize + 26 + 26);
+          const textX = tx + thumbSize + 26;
+          const textY = ty + 60;
+
+          const name = item.name || `Image ${rankNum}`;
+          const clipped = clipText(ctx, name, maxW);
+          ctx.fillText(clipped, textX, textY);
+
+          ctx.fillStyle = "rgba(255,255,255,0.55)";
+          ctx.font = "600 26px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+          ctx.fillText("Top 5 selection", textX, textY + 44);
+        }
+
+        y += cardH + gap;
+      }
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png", 1.0));
+
+      const file = new File([blob], "bce-top-5.png", { type: "image/png" });
+
+      try {
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: "BCE Comics Pod", text: "Blind Top 5" });
+        } else {
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "bce-top-5.png";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+      } catch (_) {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "bce-top-5.png";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+
+      exportBtn.textContent = "Export";
+      exportBtn.disabled = false;
+    }
+
+    function clipText(ctx, text, maxWidth) {
+      if (ctx.measureText(text).width <= maxWidth) return text;
+      const ellipsis = "…";
+      let t = text;
+      while (t.length > 0 && ctx.measureText(t + ellipsis).width > maxWidth) {
+        t = t.slice(0, -1);
+      }
+      return t + ellipsis;
     }
 
     fileInput.addEventListener("change", (e) => {
@@ -562,28 +768,66 @@
 
       if (allImages.length === 10) {
         startBtn.disabled = false;
-        rerollBtn.disabled = true;
         setStatus("Ready");
       } else {
         startBtn.disabled = true;
-        rerollBtn.disabled = true;
         setStatus(`Loaded ${allImages.length}. Need 10`);
       }
 
-      resetBtn.disabled = allImages.length === 0;
+      newRunBtn.disabled = true;
+      exportBtn.disabled = true;
+      resetBtn.disabled = (allImages.length === 0);
 
-      pickedGridEl.innerHTML = "";
-      rankSlotsEl.innerHTML = "";
+      pickedFive = [];
+      currentIndex = 0;
+      slots = [null, null, null, null, null];
+      renderSlots();
+
       stickyBar.style.display = "none";
-      progressPill.textContent = "0 of 5 placed";
-      selectedPill.textContent = "No image selected";
-      slotPill.textContent = "Tap a slot";
+      stickyMsg.textContent = "Load 10 images";
+      updateProgressUI();
+
+      currentCardEl.draggable = false;
+      currentImgEl.src = "";
+      currentImgEl.alt = "";
+      currentNameEl.textContent = "Waiting";
+      placeHintEl.textContent = "Place it";
+
+      queuePill.textContent = "0 of 5";
     });
 
-    startBtn.addEventListener("click", () => startRun());
-    rerollBtn.addEventListener("click", () => reroll());
-    resetBtn.addEventListener("click", () => resetAll());
+    startBtn.addEventListener("click", async () => {
+      await requestPortraitLock();
+      stickyBar.style.display = "block";
+      startRun();
+    });
+
+    newRunBtn.addEventListener("click", async () => {
+      await requestPortraitLock();
+      newRun();
+    });
+
+    exportBtn.addEventListener("click", exportRanking);
+    resetBtn.addEventListener("click", resetAll);
+
+    function startRun() {
+      pickedFive = shuffle(allImages).slice(0, 5);
+      currentIndex = 0;
+      slots = [null, null, null, null, null];
+
+      setStatus("Place your top 5");
+      stickyMsg.textContent = "Place the current image";
+      stickyPill.textContent = "0 of 5 placed";
+
+      newRunBtn.disabled = false;
+      resetBtn.disabled = false;
+      exportBtn.disabled = true;
+
+      renderSlots();
+      updateProgressUI();
+      updateQueueUI();
+      showCurrent();
+    }
   </script>
 </body>
 </html>
-
