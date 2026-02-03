@@ -9,7 +9,7 @@
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background: #0b0c10; color: #e8e8e8; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; padding-bottom: 96px; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 14px; padding-bottom: 96px; }
 
     .brand {
       border: 1px solid #2a2e45;
@@ -20,8 +20,8 @@
     }
     .brandTop {
       position: relative;
-      padding: 14px 14px 12px 14px;
-      min-height: 86px;
+      padding: 14px;
+      min-height: 118px;
       background: #141622;
     }
     .brandBanner {
@@ -36,7 +36,7 @@
     .brandShade {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.75));
+      background: linear-gradient(180deg, rgba(0,0,0,0.30), rgba(0,0,0,0.78));
       pointer-events: none;
     }
     .brandRow {
@@ -45,6 +45,7 @@
       gap: 12px;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
     }
     .brandLeft {
       display: flex;
@@ -53,9 +54,9 @@
       min-width: 0;
     }
     .brandLogo {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
+      width: 88px;
+      height: 88px;
+      border-radius: 18px;
       border: 1px solid #2a2e45;
       object-fit: cover;
       background: #0f1120;
@@ -64,7 +65,7 @@
     .brandText { min-width: 0; }
     .brandTitle {
       font-weight: 900;
-      font-size: 16px;
+      font-size: 18px;
       line-height: 1.1;
       margin: 0;
       white-space: nowrap;
@@ -72,10 +73,10 @@
       text-overflow: ellipsis;
     }
     .brandSub {
-      margin: 4px 0 0 0;
+      margin: 6px 0 0 0;
       opacity: 0.85;
       font-size: 12px;
-      line-height: 1.2;
+      line-height: 1.25;
     }
 
     .pill {
@@ -89,9 +90,7 @@
     }
 
     .card { background: #141622; border: 1px solid #2a2e45; border-radius: 12px; padding: 12px; }
-    .row { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .divider { height: 1px; background: #2a2e45; margin: 12px 0; }
 
     .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     input[type="file"] { color: #e8e8e8; max-width: 100%; }
@@ -110,17 +109,73 @@
     button:disabled { opacity: 0.45; cursor: not-allowed; }
     .danger { background: #ff3b3b; }
     .ghost { background: #1a1d2e; border: 1px solid #2a2e45; }
-    .sub { opacity: 0.85; font-size: 13px; line-height: 1.35; }
 
-    .divider { height: 1px; background: #2a2e45; margin: 12px 0; }
+    .sub { opacity: 0.85; font-size: 13px; line-height: 1.35; }
 
     .panelTitle { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
     .panelTitle .t { font-weight: 900; }
 
-    .currentWrap {
+    /* Two-panel layout: thumbs left, action right */
+    .mainGrid {
       display: grid;
-      gap: 10px;
+      grid-template-columns: 94px 1fr;
+      gap: 12px;
+      align-items: start;
     }
+    @media (min-width: 650px) {
+      .mainGrid { grid-template-columns: 130px 1fr; }
+    }
+    @media (min-width: 980px) {
+      .mainGrid { grid-template-columns: 170px 1fr; }
+    }
+
+    .rail {
+      background: #141622;
+      border: 1px solid #2a2e45;
+      border-radius: 12px;
+      padding: 10px;
+      position: sticky;
+      top: 10px;
+      max-height: calc(100vh - 24px);
+      overflow: auto;
+    }
+    .railTitle {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .railTitle .t { font-weight: 900; font-size: 12px; opacity: 0.9; }
+
+    .thumbCol {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .thumb {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #2a2e45;
+      background: #0b0c10;
+      display: block;
+    }
+
+    .rightCol {
+      display: grid;
+      gap: 12px;
+    }
+    @media (min-width: 980px) {
+      .rightCol {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .currentWrap { display: grid; gap: 10px; }
+
     .currentCard {
       background: #0f1120;
       border: 1px solid #2a2e45;
@@ -131,9 +186,10 @@
     .currentCard.dragging { opacity: 0.55; }
     .currentImg {
       width: 100%;
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      display: block;
+      aspect-ratio: 2 / 3;
+      object-fit: contain;
+      background: #0b0c10;
+      display: none;
     }
     .currentMeta {
       padding: 10px;
@@ -143,14 +199,6 @@
       justify-content: space-between;
       flex-wrap: wrap;
     }
-    .currentName {
-      font-size: 13px;
-      opacity: 0.9;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      max-width: 520px;
-    }
 
     .rankSlots { display: grid; gap: 10px; }
     .slot {
@@ -159,16 +207,17 @@
       border-radius: 12px;
       padding: 10px;
       display: grid;
-      grid-template-columns: 92px 1fr auto;
+      grid-template-columns: 64px 1fr auto;
       gap: 10px;
       align-items: center;
-      min-height: 78px;
+      min-height: 86px;
     }
     .slot.filled { border-style: solid; }
     .slot.dropReady { outline: 3px solid rgba(42,87,255,0.9); }
     .slotThumb {
-      width: 92px;
-      height: 62px;
+      width: 64px;
+      aspect-ratio: 2 / 3;
+      height: auto;
       border-radius: 10px;
       object-fit: cover;
       border: 1px solid #2a2e45;
@@ -177,17 +226,11 @@
     }
     .slotText { display: grid; gap: 3px; min-width: 0; }
     .slotRank { font-weight: 900; }
-    .slotName {
-      font-size: 13px;
-      opacity: 0.9;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
     .slotHint { font-size: 12px; opacity: 0.7; }
 
-    .thumbs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-    .thumbs img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; border: 1px solid #2a2e45; }
+    /* Hide filenames */
+    .currentName { display: none; }
+    .slotName { display: none; }
 
     .stickyBar {
       position: fixed;
@@ -201,7 +244,7 @@
       z-index: 9999;
     }
     .stickyRow {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       display: flex;
       gap: 10px;
@@ -225,43 +268,55 @@
             <img class="brandLogo" id="brandLogo" alt="BCE Comics Pod logo" />
             <div class="brandText">
               <p class="brandTitle">BCE Comics Pod</p>
-              <p class="brandSub">Blind Top 5 ranking from 10 images</p>
+              <p class="brandSub">Blind Top 5 ranking from your upload set</p>
             </div>
           </div>
-          <div class="pill" id="status">Load 10 images</div>
+          <div class="pill" id="status">Load images</div>
         </div>
       </div>
     </div>
 
-    <div class="row">
-      <div class="card">
-        <div class="controls">
-          <input id="fileInput" type="file" accept="image/*" multiple />
-          <button id="startBtn" disabled>Start</button>
-          <button id="newRunBtn" class="ghost" disabled>New run</button>
-          <button id="exportBtn" class="ghost" disabled>Export</button>
-          <button id="resetBtn" class="danger" disabled>Reset</button>
-          <span class="pill" id="progressPill">0 of 5 placed</span>
+    <div class="card">
+      <div class="controls">
+        <input id="fileInput" type="file" accept="image/*" multiple />
+        <button id="startBtn" disabled>Start</button>
+        <button id="newRunBtn" class="ghost" disabled>New run</button>
+        <button id="undoBtn" class="ghost" disabled>Undo</button>
+        <button id="exportBtn" class="ghost" disabled>Export</button>
+        <button id="resetBtn" class="danger" disabled>Reset</button>
+        <span class="pill" id="progressPill">0 of 5 placed</span>
+        <span class="pill" id="loadedPill">0 loaded</span>
+      </div>
+      <div class="divider"></div>
+      <div class="sub">
+        Blind flow. One cover shows at a time. Place it into any open slot. Next cover appears after placement.
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
+
+    <div class="mainGrid">
+      <div class="rail">
+        <div class="railTitle">
+          <div class="t">Uploads</div>
+          <div class="pill" id="railCount">0</div>
         </div>
-        <div class="divider"></div>
-        <div class="sub">
-          Place the current image into any open rank slot. Drag onto a slot, or tap a slot to place.
-        </div>
+        <div class="thumbCol" id="thumbCol"></div>
       </div>
 
-      <div class="grid">
+      <div class="rightCol">
         <div class="card">
           <div class="panelTitle">
-            <div class="t">Current image</div>
+            <div class="t">Current cover</div>
             <div class="pill" id="queuePill">0 of 5</div>
           </div>
           <div class="divider"></div>
 
           <div class="currentWrap">
-            <div id="currentCard" class="currentCard" draggable="false" aria-label="Current image">
+            <div id="currentCard" class="currentCard" draggable="false" aria-label="Current cover">
               <img id="currentImg" class="currentImg" alt="" />
               <div class="currentMeta">
-                <div id="currentName" class="currentName">Waiting</div>
+                <div id="currentName" class="currentName">Hidden</div>
                 <span class="pill" id="placeHint">Place it</span>
               </div>
             </div>
@@ -276,28 +331,19 @@
           <div class="divider"></div>
           <div id="rankSlots" class="rankSlots"></div>
         </div>
-
-        <div class="card">
-          <div class="panelTitle">
-            <div class="t">All 10 loaded</div>
-            <div class="pill" id="loadedPill">0 of 10</div>
-          </div>
-          <div class="divider"></div>
-          <div class="thumbs" id="thumbs"></div>
-        </div>
       </div>
     </div>
+
   </div>
 
   <div class="stickyBar" id="stickyBar">
     <div class="stickyRow">
-      <div class="stickyMsg" id="stickyMsg">Load 10 images</div>
+      <div class="stickyMsg" id="stickyMsg">Load images</div>
       <div class="pill" id="stickyPill">0 of 5 placed</div>
     </div>
   </div>
 
   <script>
-    // Root files in your repo
     const BRAND_LOGO_SRC = "./bce-logo.jpeg";
     const BRAND_BANNER_SRC = "./bce-banner.png";
 
@@ -309,19 +355,22 @@
     const fileInput = document.getElementById("fileInput");
     const startBtn = document.getElementById("startBtn");
     const newRunBtn = document.getElementById("newRunBtn");
+    const undoBtn = document.getElementById("undoBtn");
     const exportBtn = document.getElementById("exportBtn");
     const resetBtn = document.getElementById("resetBtn");
 
     const statusEl = document.getElementById("status");
     const loadedPill = document.getElementById("loadedPill");
+    const railCountEl = document.getElementById("railCount");
     const progressPill = document.getElementById("progressPill");
     const queuePill = document.getElementById("queuePill");
     const slotPill = document.getElementById("slotPill");
+
     const stickyBar = document.getElementById("stickyBar");
     const stickyMsg = document.getElementById("stickyMsg");
     const stickyPill = document.getElementById("stickyPill");
 
-    const thumbsEl = document.getElementById("thumbs");
+    const thumbColEl = document.getElementById("thumbCol");
     const rankSlotsEl = document.getElementById("rankSlots");
 
     const currentCardEl = document.getElementById("currentCard");
@@ -332,9 +381,8 @@
     let allImages = [];
     let pickedFive = [];
     let currentIndex = 0;
-
-    // slots[0] is rank 1, slots[4] is rank 5
     let slots = [null, null, null, null, null];
+    let history = [];
 
     function setStatus(text) { statusEl.textContent = text; }
 
@@ -371,15 +419,17 @@
       queuePill.textContent = `${shown} of 5`;
     }
 
-    function renderThumbs() {
-      thumbsEl.innerHTML = "";
+    function renderThumbRail() {
+      thumbColEl.innerHTML = "";
       for (const item of allImages) {
         const img = document.createElement("img");
+        img.className = "thumb";
         img.src = item.url;
-        img.alt = item.name;
-        thumbsEl.appendChild(img);
+        img.alt = "";
+        thumbColEl.appendChild(img);
       }
-      loadedPill.textContent = `${allImages.length} of 10`;
+      railCountEl.textContent = `${allImages.length}`;
+      loadedPill.textContent = `${allImages.length} loaded`;
     }
 
     function renderSlots() {
@@ -417,7 +467,7 @@
         thumb.className = "slotThumb";
         if (slots[i]) {
           thumb.src = slots[i].url;
-          thumb.alt = slots[i].name;
+          thumb.alt = "";
         } else {
           thumb.alt = "";
         }
@@ -431,11 +481,11 @@
 
         const name = document.createElement("div");
         name.className = "slotName";
-        name.textContent = slots[i] ? slots[i].name : "Empty";
+        name.textContent = "Hidden";
 
         const hint = document.createElement("div");
         hint.className = "slotHint";
-        hint.textContent = slots[i] ? "Locked" : "Tap or drop current image here";
+        hint.textContent = slots[i] ? "Locked" : "Tap or drop here";
 
         text.appendChild(rank);
         text.appendChild(name);
@@ -461,25 +511,24 @@
         stickyMsg.textContent = "Done. Export ready.";
         currentCardEl.draggable = false;
         currentCardEl.classList.remove("dragging");
-        currentImgEl.src = "";
+        currentImgEl.removeAttribute("src");
         currentImgEl.alt = "";
-        currentNameEl.textContent = "Finished";
+        currentImgEl.style.display = "none";
+        currentNameEl.textContent = "Hidden";
         placeHintEl.textContent = "Export";
         return;
       }
 
       const item = pickedFive[currentIndex];
-      if (!item) {
-        setStatus("Place your top 5");
-        stickyMsg.textContent = "Place the current image";
-        return;
-      }
+      if (!item) return;
 
       setStatus("Place your top 5");
-      stickyMsg.textContent = "Place the current image";
+      stickyMsg.textContent = "Place the current cover";
+
+      currentImgEl.style.display = "block";
       currentImgEl.src = item.url;
-      currentImgEl.alt = item.name;
-      currentNameEl.textContent = item.name;
+      currentImgEl.alt = "";
+      currentNameEl.textContent = "Hidden";
       placeHintEl.textContent = "Drag or tap a slot";
       currentCardEl.draggable = true;
 
@@ -499,29 +548,53 @@
       if (!item) return;
 
       slots[slotIndex] = item;
+
+      history.push({ slotIndex, item });
+      undoBtn.disabled = (history.length === 0);
+
       renderSlots();
       updateProgressUI();
+
       advance();
+    }
+
+    function undoLast() {
+      if (history.length === 0) return;
+
+      const last = history.pop();
+      slots[last.slotIndex] = null;
+
+      if (currentIndex > 0) currentIndex -= 1;
+
+      undoBtn.disabled = (history.length === 0);
+
+      renderSlots();
+      updateProgressUI();
+      updateQueueUI();
+
+      setStatus("Place your top 5");
+      stickyMsg.textContent = "Place the current cover";
+
+      showCurrent();
     }
 
     async function requestPortraitLock() {
       try {
         if (!screen.orientation || !screen.orientation.lock) return;
         await screen.orientation.lock("portrait");
-      } catch (_) {
-        // ignore
-      }
+      } catch (_) { }
     }
 
     function startRun() {
-      requestPortraitLock();
+      history = [];
+      undoBtn.disabled = true;
 
       pickedFive = shuffle(allImages).slice(0, 5);
       currentIndex = 0;
       slots = [null, null, null, null, null];
 
       stickyBar.style.display = "block";
-      stickyMsg.textContent = "Place the current image";
+      stickyMsg.textContent = "Place the current cover";
 
       setStatus("Place your top 5");
       newRunBtn.disabled = false;
@@ -534,58 +607,63 @@
       showCurrent();
     }
 
-    function newRun() {
-      if (allImages.length !== 10) return;
-      startRun();
-    }
-
     function resetAll() {
       clearUrls(allImages);
       allImages = [];
       pickedFive = [];
       currentIndex = 0;
       slots = [null, null, null, null, null];
+      history = [];
 
       fileInput.value = "";
-      thumbsEl.innerHTML = "";
+      thumbColEl.innerHTML = "";
       rankSlotsEl.innerHTML = "";
 
-      loadedPill.textContent = "0 of 10";
+      railCountEl.textContent = "0";
+      loadedPill.textContent = "0 loaded";
       progressPill.textContent = "0 of 5 placed";
       queuePill.textContent = "0 of 5";
       slotPill.textContent = "Drop or tap";
 
       stickyBar.style.display = "none";
-      stickyMsg.textContent = "Load 10 images";
+      stickyMsg.textContent = "Load images";
       stickyPill.textContent = "0 of 5 placed";
 
-      setStatus("Load 10 images");
+      setStatus("Load images");
 
       currentCardEl.draggable = false;
-      currentImgEl.src = "";
+      currentImgEl.removeAttribute("src");
       currentImgEl.alt = "";
-      currentNameEl.textContent = "Waiting";
+      currentImgEl.style.display = "none";
+      currentNameEl.textContent = "Hidden";
       placeHintEl.textContent = "Place it";
 
       startBtn.disabled = true;
       newRunBtn.disabled = true;
+      undoBtn.disabled = true;
       exportBtn.disabled = true;
       resetBtn.disabled = true;
     }
 
-    currentCardEl.addEventListener("dragstart", (e) => {
-      if (!currentCardEl.draggable) {
-        e.preventDefault();
-        return;
-      }
-      currentCardEl.classList.add("dragging");
-      e.dataTransfer.setData("text/plain", "current");
-    });
+    function drawRoundedRect(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+    }
 
-    currentCardEl.addEventListener("dragend", () => {
-      currentCardEl.classList.remove("dragging");
-      for (const el of document.querySelectorAll(".slot")) el.classList.remove("dropReady");
-    });
+    function loadImageFromUrl(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
 
     function buildExportCanvas() {
       const width = 1080;
@@ -626,174 +704,161 @@
       return { canvas, ctx, width, height, padding, cardW, cardH, gap, y };
     }
 
-    function drawRoundedRect(ctx, x, y, w, h, r) {
-      const rr = Math.min(r, w / 2, h / 2);
-      ctx.beginPath();
-      ctx.moveTo(x + rr, y);
-      ctx.arcTo(x + w, y, x + w, y + h, rr);
-      ctx.arcTo(x + w, y + h, x, y + h, rr);
-      ctx.arcTo(x, y + h, x, y, rr);
-      ctx.arcTo(x, y, x + w, y, rr);
-      ctx.closePath();
-    }
-
-    function loadImageFromUrl(url) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = url;
-      });
-    }
-
     async function exportRanking() {
       if (placedCount() !== 5) return;
 
       exportBtn.disabled = true;
       exportBtn.textContent = "Exporting";
-
-      const layout = buildExportCanvas();
-      const { canvas, ctx, padding, cardW, cardH, gap } = layout;
-      let y = layout.y;
-
-      for (let i = 0; i < 5; i++) {
-        const item = slots[i];
-        const rankNum = i + 1;
-
-        ctx.fillStyle = "rgba(15,17,32,0.98)";
-        drawRoundedRect(ctx, padding, y, cardW, cardH, 22);
-        ctx.fill();
-
-        ctx.fillStyle = "rgba(255,255,255,0.92)";
-        ctx.font = "900 44px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-        ctx.fillText(`Rank ${rankNum}`, padding + 26, y + 66);
-
-        if (item) {
-          const img = await loadImageFromUrl(item.url);
-
-          const thumbSize = 200;
-          const tx = padding + 26;
-          const ty = y + 92;
-
-          drawRoundedRect(ctx, tx, ty, thumbSize, thumbSize, 18);
-          ctx.save();
-          ctx.clip();
-
-          const ir = img.width / img.height;
-          let dw = thumbSize, dh = thumbSize;
-          let sx = 0, sy = 0, sw = img.width, sh = img.height;
-
-          if (ir > 1) {
-            sh = img.height;
-            sw = img.height;
-            sx = Math.floor((img.width - sw) / 2);
-          } else {
-            sw = img.width;
-            sh = img.width;
-            sy = Math.floor((img.height - sh) / 2);
-          }
-
-          ctx.drawImage(img, sx, sy, sw, sh, tx, ty, dw, dh);
-          ctx.restore();
-
-          ctx.fillStyle = "rgba(255,255,255,0.85)";
-          ctx.font = "700 32px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-
-          const maxW = cardW - (26 + thumbSize + 26 + 26);
-          const textX = tx + thumbSize + 26;
-          const textY = ty + 60;
-
-          const name = item.name || `Image ${rankNum}`;
-          const clipped = clipText(ctx, name, maxW);
-          ctx.fillText(clipped, textX, textY);
-
-          ctx.fillStyle = "rgba(255,255,255,0.55)";
-          ctx.font = "600 26px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-          ctx.fillText("Top 5 selection", textX, textY + 44);
-        }
-
-        y += cardH + gap;
-      }
-
-      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png", 1.0));
-
-      const file = new File([blob], "bce-top-5.png", { type: "image/png" });
+      setStatus("Exporting");
+      stickyMsg.textContent = "Exporting image";
 
       try {
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: "BCE Comics Pod", text: "Blind Top 5" });
-        } else {
+        const layout = buildExportCanvas();
+        const { canvas, ctx, width, padding, cardW, cardH, gap } = layout;
+        let y = layout.y;
+
+        for (let i = 0; i < 5; i++) {
+          const item = slots[i];
+          const rankNum = i + 1;
+
+          ctx.fillStyle = "rgba(15,17,32,0.98)";
+          drawRoundedRect(ctx, padding, y, cardW, cardH, 22);
+          ctx.fill();
+
+          ctx.fillStyle = "rgba(255,255,255,0.92)";
+          ctx.font = "900 44px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+          ctx.fillText(`Rank ${rankNum}`, padding + 26, y + 66);
+
+          if (item) {
+            const img = await loadImageFromUrl(item.url);
+
+            const thumbW = 170;
+            const thumbH = 255;
+            const tx = padding + 26;
+            const ty = y + 18;
+
+            drawRoundedRect(ctx, tx, ty, thumbW, thumbH, 18);
+            ctx.save();
+            ctx.clip();
+
+            const ir = img.width / img.height;
+            let sx = 0, sy = 0, sw = img.width, sh = img.height;
+
+            if (ir > (2 / 3)) {
+              sh = img.height;
+              sw = Math.floor(img.height * (2 / 3));
+              sx = Math.floor((img.width - sw) / 2);
+            } else {
+              sw = img.width;
+              sh = Math.floor(img.width * (3 / 2));
+              sy = Math.floor((img.height - sh) / 2);
+            }
+
+            ctx.drawImage(img, sx, sy, sw, sh, tx, ty, thumbW, thumbH);
+            ctx.restore();
+          }
+
+          y += cardH + gap;
+        }
+
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png", 1.0));
+
+        if (!blob) {
+          const dataUrl = canvas.toDataURL("image/png");
           const a = document.createElement("a");
-          a.href = URL.createObjectURL(blob);
+          a.href = dataUrl;
           a.download = "bce-top-5.png";
           document.body.appendChild(a);
           a.click();
           a.remove();
+        } else {
+          const file = new File([blob], "bce-top-5.png", { type: "image/png" });
+
+          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: "BCE Comics Pod", text: "Blind Top 5" });
+          } else {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "bce-top-5.png";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+          }
         }
-      } catch (_) {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "bce-top-5.png";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
 
-      exportBtn.textContent = "Export";
-      exportBtn.disabled = false;
+        setStatus("Done");
+        stickyMsg.textContent = "Done. Export ready.";
+      } catch (e) {
+        setStatus("Export failed");
+        stickyMsg.textContent = "Export failed";
+        alert("Export failed. Retry. If downloads are blocked, allow downloads for this site.");
+      } finally {
+        exportBtn.textContent = "Export";
+        exportBtn.disabled = false;
+      }
     }
 
-    function clipText(ctx, text, maxWidth) {
-      if (ctx.measureText(text).width <= maxWidth) return text;
-      const ellipsis = "…";
-      let t = text;
-      while (t.length > 0 && ctx.measureText(t + ellipsis).width > maxWidth) {
-        t = t.slice(0, -1);
+    currentCardEl.addEventListener("dragstart", (e) => {
+      if (!currentCardEl.draggable) {
+        e.preventDefault();
+        return;
       }
-      return t + ellipsis;
-    }
+      currentCardEl.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", "current");
+    });
+
+    currentCardEl.addEventListener("dragend", () => {
+      currentCardEl.classList.remove("dragging");
+      for (const el of document.querySelectorAll(".slot")) el.classList.remove("dropReady");
+    });
 
     fileInput.addEventListener("change", (e) => {
       const files = Array.from(e.target.files || []);
 
       clearUrls(allImages);
-      allImages = files.slice(0, 10).map((f, idx) => ({
+      allImages = files.map((f, idx) => ({
         id: `${Date.now()}-${idx}`,
         name: f.name || `Image ${idx + 1}`,
         file: f,
         url: URL.createObjectURL(f)
       }));
 
-      renderThumbs();
-
-      if (allImages.length === 10) {
-        startBtn.disabled = false;
-        setStatus("Ready");
-      } else {
-        startBtn.disabled = true;
-        setStatus(`Loaded ${allImages.length}. Need 10`);
-      }
-
-      newRunBtn.disabled = true;
-      exportBtn.disabled = true;
-      resetBtn.disabled = (allImages.length === 0);
+      renderThumbRail();
 
       pickedFive = [];
       currentIndex = 0;
       slots = [null, null, null, null, null];
-      renderSlots();
+      history = [];
+      undoBtn.disabled = true;
 
-      stickyBar.style.display = "none";
-      stickyMsg.textContent = "Load 10 images";
+      renderSlots();
       updateProgressUI();
 
       currentCardEl.draggable = false;
-      currentImgEl.src = "";
+      currentImgEl.removeAttribute("src");
       currentImgEl.alt = "";
-      currentNameEl.textContent = "Waiting";
+      currentImgEl.style.display = "none";
+      currentNameEl.textContent = "Hidden";
       placeHintEl.textContent = "Place it";
 
-      queuePill.textContent = "0 of 5";
+      stickyBar.style.display = "none";
+      stickyMsg.textContent = "Load images";
+      stickyPill.textContent = "0 of 5 placed";
+
+      if (allImages.length >= 5) {
+        startBtn.disabled = false;
+        resetBtn.disabled = false;
+        setStatus("Ready");
+      } else {
+        startBtn.disabled = true;
+        resetBtn.disabled = (allImages.length === 0);
+        setStatus(`Need 5. Loaded ${allImages.length}`);
+      }
+
+      newRunBtn.disabled = true;
+      exportBtn.disabled = true;
     });
 
     startBtn.addEventListener("click", async () => {
@@ -804,30 +869,13 @@
 
     newRunBtn.addEventListener("click", async () => {
       await requestPortraitLock();
-      newRun();
+      if (allImages.length < 5) return;
+      startRun();
     });
 
+    undoBtn.addEventListener("click", undoLast);
     exportBtn.addEventListener("click", exportRanking);
     resetBtn.addEventListener("click", resetAll);
-
-    function startRun() {
-      pickedFive = shuffle(allImages).slice(0, 5);
-      currentIndex = 0;
-      slots = [null, null, null, null, null];
-
-      setStatus("Place your top 5");
-      stickyMsg.textContent = "Place the current image";
-      stickyPill.textContent = "0 of 5 placed";
-
-      newRunBtn.disabled = false;
-      resetBtn.disabled = false;
-      exportBtn.disabled = true;
-
-      renderSlots();
-      updateProgressUI();
-      updateQueueUI();
-      showCurrent();
-    }
   </script>
 </body>
 </html>
