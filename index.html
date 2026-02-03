@@ -9,6 +9,7 @@
     body { margin: 0; background: #0b0c10; color: #e8e8e8; }
     .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; padding-bottom: 90px; }
 
+    /* Branding */
     .brand {
       border: 1px solid #2a2e45;
       border-radius: 14px;
@@ -18,16 +19,23 @@
     }
     .brandTop {
       position: relative;
-      padding: 14px;
-      background: linear-gradient(180deg, rgba(42,87,255,0.18), rgba(0,0,0,0));
+      padding: 14px 14px 12px 14px;
+      min-height: 86px;
+      background: #141622;
     }
     .brandBanner {
       position: absolute;
       inset: 0;
-      opacity: 0.22;
       background-size: cover;
       background-position: center;
+      opacity: 0.35;
       filter: saturate(1.05) contrast(1.05);
+      pointer-events: none;
+    }
+    .brandShade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.75));
       pointer-events: none;
     }
     .brandRow {
@@ -64,22 +72,22 @@
     }
     .brandSub {
       margin: 4px 0 0 0;
-      opacity: 0.82;
+      opacity: 0.85;
       font-size: 12px;
       line-height: 1.2;
     }
 
     .pill {
-      background: #1a1d2e;
+      background: rgba(26,29,46,0.92);
       border: 1px solid #2a2e45;
       color: #e8e8e8;
       border-radius: 999px;
       padding: 6px 10px;
       font-size: 12px;
-      opacity: 0.95;
       white-space: nowrap;
     }
 
+    /* Layout */
     .card { background: #141622; border: 1px solid #2a2e45; border-radius: 12px; padding: 12px; }
     .row { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -109,6 +117,7 @@
     .panelTitle { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
     .panelTitle .t { font-weight: 900; }
 
+    /* Picked 5 */
     .pickedGrid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -124,19 +133,15 @@
       cursor: pointer;
       user-select: none;
     }
-    .pickedCard.selected { outline: 3px solid rgba(42,87,255,0.9); }
-    .pickedCard.placed { opacity: 0.55; }
+    .pickedCard.selected { outline: 3px solid rgba(255,59,59,0.9); }
+    .pickedCard.placed { opacity: 0.55; cursor: default; }
     .pickedImg {
       width: 100%;
       aspect-ratio: 1 / 1;
       object-fit: cover;
       display: block;
     }
-    .pickedMeta {
-      padding: 10px;
-      display: grid;
-      gap: 6px;
-    }
+    .pickedMeta { padding: 10px; display: grid; gap: 6px; }
     .pickedName {
       font-size: 12px;
       opacity: 0.9;
@@ -146,10 +151,8 @@
     }
     .pickedSmall { font-size: 12px; opacity: 0.75; }
 
-    .rankSlots {
-      display: grid;
-      gap: 10px;
-    }
+    /* Rank slots */
+    .rankSlots { display: grid; gap: 10px; }
     .slot {
       background: #0f1120;
       border: 1px dashed #3a3f60;
@@ -162,7 +165,7 @@
       min-height: 78px;
       cursor: pointer;
     }
-    .slot.filled { border-style: solid; }
+    .slot.filled { border-style: solid; cursor: default; }
     .slotThumb {
       width: 92px;
       height: 62px;
@@ -183,9 +186,11 @@
     }
     .slotHint { font-size: 12px; opacity: 0.7; }
 
+    /* All 10 thumbs */
     .thumbs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
     .thumbs img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; border: 1px solid #2a2e45; }
 
+    /* Sticky bar */
     .stickyBar {
       position: fixed;
       left: 0;
@@ -207,6 +212,9 @@
       flex-wrap: wrap;
     }
     .stickyMsg { font-size: 13px; opacity: 0.9; }
+
+    /* BCE colors (red accent) */
+    .accent { color: #ff3b3b; }
   </style>
 </head>
 <body>
@@ -215,6 +223,7 @@
     <div class="brand">
       <div class="brandTop">
         <div class="brandBanner" id="brandBanner"></div>
+        <div class="brandShade"></div>
         <div class="brandRow">
           <div class="brandLeft">
             <img class="brandLogo" id="brandLogo" alt="BCE Comics Pod logo" />
@@ -282,29 +291,15 @@
   </div>
 
   <script>
-    /* Branding setup
-       Upload your images into the repo, then set these.
-       Example values:
-       const BRAND_LOGO_SRC = "./assets/bce-logo.png";
-       const BRAND_BANNER_SRC = "./assets/bce-banner.jpg";
-    */
-    const BRAND_LOGO_SRC = "";
-    const BRAND_BANNER_SRC = "";
+    // Branding paths. Keep these exact if you used the filenames I listed.
+    const BRAND_LOGO_SRC = "./assets/bce-logo.jpg";
+    const BRAND_BANNER_SRC = "./assets/bce-banner.png";
 
     const brandLogoEl = document.getElementById("brandLogo");
     const brandBannerEl = document.getElementById("brandBanner");
 
-    if (BRAND_LOGO_SRC) {
-      brandLogoEl.src = BRAND_LOGO_SRC;
-    } else {
-      brandLogoEl.style.display = "none";
-    }
-
-    if (BRAND_BANNER_SRC) {
-      brandBannerEl.style.backgroundImage = `url('${BRAND_BANNER_SRC}')`;
-    } else {
-      brandBannerEl.style.display = "none";
-    }
+    brandLogoEl.src = BRAND_LOGO_SRC;
+    brandBannerEl.style.backgroundImage = `url('${BRAND_BANNER_SRC}')`;
 
     const fileInput = document.getElementById("fileInput");
     const startBtn = document.getElementById("startBtn");
@@ -444,7 +439,6 @@
         slot.addEventListener("click", () => {
           slotPill.textContent = `Rank ${rankNum}`;
           if (placedCount() === 5) return;
-
           if (slots[i]) return;
 
           if (!selectedId) {
@@ -521,7 +515,6 @@
 
       rerollBtn.disabled = false;
       resetBtn.disabled = false;
-      startBtn.textContent = "Start";
     }
 
     function reroll() {
@@ -552,7 +545,6 @@
       startBtn.disabled = true;
       rerollBtn.disabled = true;
       resetBtn.disabled = true;
-      startBtn.textContent = "Start";
     }
 
     fileInput.addEventListener("change", (e) => {
