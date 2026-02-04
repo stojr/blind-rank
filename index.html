@@ -85,8 +85,7 @@
     .heroShade {
       position: absolute;
       inset: 0;
-      background:
-        linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.86));
+      background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.86));
     }
 
     .heroContent {
@@ -147,50 +146,7 @@
     .controlsBody.open { display: block; }
     .controlsRow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-    /* Main layout: uploads left, right area split into ranks (left) and current (right) */
-    .mainGrid {
-      display: grid;
-      grid-template-columns: 94px 1fr;
-      gap: 12px;
-      align-items: start;
-    }
-    @media (min-width: 650px) { .mainGrid { grid-template-columns: 130px 1fr; } }
-    @media (min-width: 980px) { .mainGrid { grid-template-columns: 170px 1fr; } }
-
-    .rail {
-      background: #141622;
-      border: 1px solid #2a2e45;
-      border-radius: 12px;
-      padding: 10px;
-      position: sticky;
-      top: 10px;
-      max-height: calc(100vh - 24px);
-      overflow: auto;
-    }
-    .railTitle {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .railTitle .t { font-weight: 900; font-size: 12px; opacity: 0.9; }
-
-    .thumbCol { display: grid; grid-template-columns: 1fr; gap: 8px; }
-    .thumb {
-      width: 100%;
-      aspect-ratio: 2 / 3;
-      object-fit: cover;
-      border-radius: 10px;
-      border: 1px solid #2a2e45;
-      background: #0b0c10;
-      display: block;
-    }
-
-    .rail.blind { display: none; 
-
-    }
-
+    /* Main layout: rank slots (left) and current (right) */
     .rightCol {
       display: grid;
       gap: 12px;
@@ -255,6 +211,21 @@
     .slotRank { font-weight: 1000; }
     .slotHint { font-size: 12px; opacity: 0.7; }
 
+    /* Uploads in More panel */
+    .uploadsGrid { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); }
+    @media (min-width: 650px) { .uploadsGrid { grid-template-columns: repeat(6, 1fr); } }
+    @media (min-width: 980px) { .uploadsGrid { grid-template-columns: repeat(10, 1fr); } }
+
+    .uThumb {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #2a2e45;
+      background: #0b0c10;
+      display: block;
+    }
+
     .currentName { display: none; }
     .slotName { display: none; }
   </style>
@@ -307,46 +278,46 @@
         </div>
 
         <div class="divider"></div>
+
         <div class="sub">
           Blind flow. One cover shows at a time. Place it into any open slot. Next cover appears after placement.
         </div>
+
+        <div class="divider"></div>
+
+        <div class="panelTitle">
+          <div class="t">Uploads</div>
+          <div class="pill" id="uploadsCount">0</div>
+        </div>
+        <div style="height:10px"></div>
+        <div id="uploadsGrid" class="uploadsGrid"></div>
       </div>
     </div>
 
     <div style="height:12px"></div>
 
-    <div class="mainGrid">
-      <div class="rail" id="rail">
-        <div class="railTitle">
-          <div class="t">Uploads</div>
-          <div class="pill" id="railCount">0</div>
+    <div class="rightCol">
+      <div class="card">
+        <div class="panelTitle">
+          <div class="t">Rank slots</div>
+          <div class="pill" id="rankHint">Drop or tap</div>
         </div>
-        <div class="thumbCol" id="thumbCol"></div>
+        <div class="divider"></div>
+        <div id="rankSlots" class="rankSlots"></div>
       </div>
 
-      <div class="rightCol">
-        <div class="card">
-          <div class="panelTitle">
-            <div class="t">Rank slots</div>
-            <div class="pill" id="rankHint">Drop or tap</div>
-          </div>
-          <div class="divider"></div>
-          <div id="rankSlots" class="rankSlots"></div>
+      <div class="card">
+        <div class="panelTitle">
+          <div class="t">Current cover</div>
+          <div class="pill" id="queuePillTop">0 of 5</div>
         </div>
+        <div class="divider"></div>
 
-        <div class="card">
-          <div class="panelTitle">
-            <div class="t">Current cover</div>
-            <div class="pill" id="queuePillTop">0 of 5</div>
-          </div>
-          <div class="divider"></div>
-
-          <div id="currentCard" class="currentCard" draggable="false" aria-label="Current cover">
-            <img id="currentImg" class="currentImg" alt="" />
-            <div class="currentMeta">
-              <div id="currentName" class="currentName">Hidden</div>
-              <span class="pill" id="placeHint">Place it</span>
-            </div>
+        <div id="currentCard" class="currentCard" draggable="false" aria-label="Current cover">
+          <img id="currentImg" class="currentImg" alt="" />
+          <div class="currentMeta">
+            <div id="currentName" class="currentName">Hidden</div>
+            <span class="pill" id="placeHint">Place it</span>
           </div>
         </div>
       </div>
@@ -381,7 +352,9 @@
 
     const statusEl = document.getElementById("status");
     const loadedPill = document.getElementById("loadedPill");
-    const railCountEl = document.getElementById("railCount");
+    const uploadsCountEl = document.getElementById("uploadsCount");
+    const uploadsGridEl = document.getElementById("uploadsGrid");
+
     const progressPill = document.getElementById("progressPill");
     const queuePill = document.getElementById("queuePill");
     const queuePillTop = document.getElementById("queuePillTop");
@@ -392,10 +365,7 @@
     const stickyMsg = document.getElementById("stickyMsg");
     const stickyPill = document.getElementById("stickyPill");
 
-    const railEl = document.getElementById("rail");
-    const thumbColEl = document.getElementById("thumbCol");
     const rankSlotsEl = document.getElementById("rankSlots");
-
     const currentCardEl = document.getElementById("currentCard");
     const currentImgEl = document.getElementById("currentImg");
     const currentNameEl = document.getElementById("currentName");
@@ -418,10 +388,6 @@
       const open = controlsBody.classList.contains("open");
       setControlsOpen(!open);
     });
-
-    function setBlindRail(isBlind) {
-      railEl.classList.toggle("blind", isBlind);
-    }
 
     function clearUrls(list) {
       for (const item of list) {
@@ -455,16 +421,16 @@
       queuePillTop.textContent = `${shown} of 5`;
     }
 
-    function renderThumbRail() {
-      thumbColEl.innerHTML = "";
+    function renderUploadsGrid() {
+      uploadsGridEl.innerHTML = "";
       for (const item of allImages) {
         const img = document.createElement("img");
-        img.className = "thumb";
+        img.className = "uThumb";
         img.src = item.url;
         img.alt = "";
-        thumbColEl.appendChild(img);
+        uploadsGridEl.appendChild(img);
       }
-      railCountEl.textContent = `${allImages.length}`;
+      uploadsCountEl.textContent = `${allImages.length}`;
       loadedPill.textContent = `${allImages.length} loaded`;
     }
 
@@ -548,7 +514,6 @@
         currentImgEl.style.display = "none";
         currentNameEl.textContent = "Hidden";
         placeHintEl.textContent = "Export";
-        setBlindRail(false);
         return;
       }
 
@@ -634,7 +599,6 @@
       resetBtn.disabled = false;
       exportBtn.disabled = true;
 
-      setBlindRail(true);
       renderSlots();
       updateProgressUI();
       updateQueueUI();
@@ -652,10 +616,11 @@
       history = [];
 
       fileInput.value = "";
-      thumbColEl.innerHTML = "";
+      uploadsGridEl.innerHTML = "";
+
       rankSlotsEl.innerHTML = "";
 
-      railCountEl.textContent = "0";
+      uploadsCountEl.textContent = "0";
       loadedPill.textContent = "0 loaded";
       progressPill.textContent = "0 of 5 placed";
       queuePill.textContent = "0 of 5";
@@ -675,8 +640,6 @@
       currentImgEl.style.display = "none";
       currentNameEl.textContent = "Hidden";
       placeHintEl.textContent = "Place it";
-
-      setBlindRail(false);
 
       startBtn.disabled = true;
       toggleControlsBtn.disabled = true;
@@ -708,43 +671,19 @@
       });
     }
 
-    function buildExportCanvas() {
-      const width = 1080;
-      const height = 1920;
-      const padding = 56;
+    function drawCoverContained(ctx, img, x, y, w, h) {
+      const ir = img.width / img.height;
+      const tr = w / h;
+      let dw = w, dh = h, dx = x, dy = y;
 
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-
-      const bg = ctx.createLinearGradient(0, 0, 0, height);
-      bg.addColorStop(0, "#0b0c10");
-      bg.addColorStop(1, "#141622");
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, width, height);
-
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
-      ctx.font = "1000 64px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-      ctx.fillText("BCE COMICS POD", padding, 120);
-
-      ctx.fillStyle = "rgba(255,255,255,0.80)";
-      ctx.font = "800 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-      ctx.fillText("Blind Top 5", padding, 172);
-
-      ctx.strokeStyle = "rgba(255,255,255,0.18)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(padding, 206);
-      ctx.lineTo(width - padding, 206);
-      ctx.stroke();
-
-      const cardW = width - padding * 2;
-      const cardH = 280;
-      const gap = 34;
-      let y = 250;
-
-      return { canvas, ctx, width, height, padding, cardW, cardH, gap, y };
+      if (ir > tr) {
+        dh = w / ir;
+        dy = y + (h - dh) / 2;
+      } else {
+        dw = h * ir;
+        dx = x + (w - dw) / 2;
+      }
+      ctx.drawImage(img, dx, dy, dw, dh);
     }
 
     async function exportRanking() {
@@ -756,53 +695,70 @@
       stickyMsg.textContent = "Exporting image";
 
       try {
-        const layout = buildExportCanvas();
-        const { canvas, ctx, padding, cardW, cardH, gap } = layout;
-        let y = layout.y;
+        const width = 1080;
+        const height = 1920;
+        const padding = 56;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+
+        const bg = ctx.createLinearGradient(0, 0, 0, height);
+        bg.addColorStop(0, "#0b0c10");
+        bg.addColorStop(1, "#141622");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.font = "1000 64px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillText("BCE COMICS POD", padding, 120);
+
+        ctx.fillStyle = "rgba(255,255,255,0.80)";
+        ctx.font = "800 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillText("Blind Top 5", padding, 172);
+
+        ctx.strokeStyle = "rgba(255,255,255,0.18)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(padding, 206);
+        ctx.lineTo(width - padding, 206);
+        ctx.stroke();
+
+        const areaTop = 250;
+        const areaBottom = height - 70;
+        const areaH = areaBottom - areaTop;
+        const gap = 18;
+        const rowH = Math.floor((areaH - gap * 4) / 5);
 
         for (let i = 0; i < 5; i++) {
           const item = slots[i];
-          const rankNum = i + 1;
+          if (!item) continue;
+
+          const y = areaTop + i * (rowH + gap);
 
           ctx.fillStyle = "rgba(15,17,32,0.98)";
-          drawRoundedRect(ctx, padding, y, cardW, cardH, 22);
+          drawRoundedRect(ctx, padding, y, width - padding * 2, rowH, 22);
           ctx.fill();
 
           ctx.fillStyle = "rgba(255,255,255,0.92)";
-          ctx.font = "1000 44px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-          ctx.fillText(`Rank ${rankNum}`, padding + 26, y + 66);
+          ctx.font = "1000 46px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+          ctx.fillText(`${i + 1}`, padding + 22, y + 56);
 
-          if (item) {
-            const img = await loadImageFromUrl(item.url);
+          const img = await loadImageFromUrl(item.url);
 
-            const thumbW = 170;
-            const thumbH = 255;
-            const tx = padding + 26;
-            const ty = y + 18;
+          const imgX = padding + 90;
+          const imgW = (width - padding * 2) - 110;
+          const imgY = y + 14;
+          const imgH = rowH - 28;
 
-            drawRoundedRect(ctx, tx, ty, thumbW, thumbH, 18);
-            ctx.save();
-            ctx.clip();
-
-            const targetRatio = 2 / 3;
-            const ir = img.width / img.height;
-            let sx = 0, sy = 0, sw = img.width, sh = img.height;
-
-            if (ir > targetRatio) {
-              sh = img.height;
-              sw = Math.floor(img.height * targetRatio);
-              sx = Math.floor((img.width - sw) / 2);
-            } else {
-              sw = img.width;
-              sh = Math.floor(img.width / targetRatio);
-              sy = Math.floor((img.height - sh) / 2);
-            }
-
-            ctx.drawImage(img, sx, sy, sw, sh, tx, ty, thumbW, thumbH);
-            ctx.restore();
-          }
-
-          y += cardH + gap;
+          ctx.save();
+          drawRoundedRect(ctx, imgX, imgY, imgW, imgH, 18);
+          ctx.clip();
+          ctx.fillStyle = "#0b0c10";
+          ctx.fillRect(imgX, imgY, imgW, imgH);
+          drawCoverContained(ctx, img, imgX, imgY, imgW, imgH);
+          ctx.restore();
         }
 
         const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png", 1.0));
@@ -869,7 +825,7 @@
         url: URL.createObjectURL(f)
       }));
 
-      renderThumbRail();
+      renderUploadsGrid();
 
       pickedFive = [];
       currentIndex = 0;
@@ -890,8 +846,6 @@
       stickyBar.style.display = "none";
       stickyMsg.textContent = "Load images";
       stickyPill.textContent = "0 of 5 placed";
-
-      setBlindRail(false);
 
       if (allImages.length >= 5) {
         startBtn.disabled = false;
@@ -927,72 +881,7 @@
     exportBtn.addEventListener("click", exportRanking);
     resetBtn.addEventListener("click", resetAll);
 
-    function startRun() { startRunInner(); }
-    function startRunInner() { startRunCore(); }
-
-    function startRunCore() { startRunImpl(); }
-
-    function startRunImpl() { startRunMain(); }
-
-    function startRunMain() { startRunActual(); }
-
-    function startRunActual() { startRun(); }
-
-    function startRun() { startRunReal(); }
-
-    function startRunReal() { startRunFinal(); }
-
-    function startRunFinal() { startRunGo(); }
-
-    function startRunGo() { startRunNow(); }
-
-    function startRunNow() { startRunExecute(); }
-
-    function startRunExecute() { startRunDo(); }
-
-    function startRunDo() { startRunRealWork(); }
-
-    function startRunRealWork() { startRunWork(); }
-
-    function startRunWork() { startRun(); }
-
-    /* Prevent recursion above by defining the real function last and overwriting the name */
-    const _startRun = startRun;
-
-    function startRun() {
-      history = [];
-      undoBtn.disabled = true;
-
-      pickedFive = shuffle(allImages).slice(0, 5);
-      currentIndex = 0;
-      slots = [null, null, null, null, null];
-
-      stickyBar.style.display = "block";
-      stickyMsg.textContent = "Place the current cover";
-
-      setStatus("Place your top 5");
-      newRunBtn.disabled = false;
-      resetBtn.disabled = false;
-      exportBtn.disabled = true;
-
-      setBlindRail(true);
-      renderSlots();
-      updateProgressUI();
-      updateQueueUI();
-      showCurrent();
-
-      setControlsOpen(false);
-    }
-  </script>
-
-  <script>
-    /* Remove the accidental recursion stubs if pasted into an editor that flags them.
-       This small block keeps the page stable even if those stubs exist.
-       It rebinds Start and New run after load. */
-    window.addEventListener("load", () => {
-      startBtn.onclick = async () => { await requestPortraitLock(); stickyBar.style.display = "block"; startRun(); };
-      newRunBtn.onclick = async () => { await requestPortraitLock(); if (allImages.length < 5) return; startRun(); };
-    });
+    resetAll();
   </script>
 </body>
 </html>
