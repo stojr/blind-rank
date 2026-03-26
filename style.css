@@ -1,0 +1,706 @@
+/* ═══════════════════════════════════════════════════════════════
+   BLIND RANK — Design System & Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── 1. Design Tokens ──────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-base:    #060711;
+  --bg-surface: #0c0e1d;
+  --bg-raised:  #111428;
+  --bg-hover:   #181c34;
+
+  /* Borders */
+  --bd-sub: rgba(255, 255, 255, 0.055);
+  --bd-def: rgba(255, 255, 255, 0.10);
+  --bd-str: rgba(255, 255, 255, 0.20);
+
+  /* Accent — indigo-blue */
+  --accent:      #5b7fff;
+  --accent-hi:   #7090ff;
+  --accent-dim:  rgba(91, 127, 255, 0.14);
+  --accent-glow: 0 0 0 3px rgba(91, 127, 255, 0.32);
+
+  /* Text */
+  --t1: #eef0f9;
+  --t2: #9799b3;
+  --t3: #5c5f7c;
+
+  /* Semantic */
+  --danger:     #ef4444;
+  --danger-dim: rgba(239, 68, 68, 0.14);
+  --success:    #34d399;
+  --success-dim: rgba(52, 211, 153, 0.12);
+
+  /* Rank medals */
+  --r1: #f5a623;   /* gold   */
+  --r2: #9ca3af;   /* silver */
+  --r3: #b87333;   /* bronze */
+
+  /* Radius */
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   16px;
+  --r-xl:   22px;
+  --r-pill: 999px;
+
+  /* Motion */
+  --ease:   cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 130ms;
+  --t-mid:  240ms;
+  --t-slow: 400ms;
+
+  /* Typography */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── 2. Reset ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body   { background: var(--bg-base); color: var(--t1); min-height: 100dvh; }
+button { font: inherit; cursor: pointer; border: none; touch-action: manipulation; }
+img    { display: block; max-width: 100%; }
+p      { margin: 0; }
+strong { font-weight: 700; }
+.hidden { display: none !important; }
+
+/* ─── 3. Layout ─────────────────────────────────────────────── */
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 12px 130px;
+}
+
+.ranking-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(160px, 44vw) 1fr;
+  align-items: start;
+}
+
+/* On mobile: current cover above slots */
+@media (max-width: 560px) {
+  .ranking-grid {
+    grid-template-columns: 1fr;
+  }
+  .ranking-grid .card:last-child { order: -1; }
+}
+@media (min-width: 980px) {
+  .ranking-grid { grid-template-columns: 360px 1fr; }
+}
+
+/* ─── 4. Card ───────────────────────────────────────────────── */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--bd-def);
+  border-radius: var(--r-xl);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.card:last-child { margin-bottom: 0; }
+
+.divider {
+  height: 1px;
+  background: var(--bd-sub);
+  margin: 12px 0;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--t1);
+}
+
+/* ─── 5. Hero ───────────────────────────────────────────────── */
+.hero {
+  border: 1px solid var(--bd-def);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.hero-banner {
+  position: relative;
+  height: 160px;
+  background: var(--bg-raised);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+@media (min-width: 650px)  { .hero-banner { height: 190px; } }
+@media (min-width: 980px)  { .hero-banner { height: 220px; } }
+
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(170deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.78) 100%);
+}
+
+.hero-content {
+  position: absolute;
+  inset: auto 14px 14px 14px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero-left {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hero-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--bd-str);
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+  background: var(--bg-raised);
+}
+@media (min-width: 650px) { .hero-logo { width: 100px; height: 100px; } }
+
+.hero-title {
+  font-size: clamp(18px, 4vw, 26px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.65);
+}
+.hero-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.62);
+  margin-top: 4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── 6. Badges / Pills ─────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--bd-def);
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--t2);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--bd-str);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t1);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: background var(--t-fast);
+}
+
+/* ─── 7. Buttons ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: var(--r-md);
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition:
+    background   var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease),
+    box-shadow   var(--t-fast) var(--ease),
+    transform    var(--t-fast) var(--ease),
+    opacity      var(--t-fast);
+}
+.btn:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.btn:not(:disabled):hover  { transform: translateY(-1px); }
+.btn:not(:disabled):active { transform: translateY(0) scale(0.97); }
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(91, 127, 255, 0.42);
+}
+.btn-primary:not(:disabled):hover {
+  background: var(--accent-hi);
+  box-shadow: 0 6px 24px rgba(91, 127, 255, 0.58);
+}
+
+.btn-ghost {
+  background: var(--bg-raised);
+  border: 1px solid var(--bd-def);
+  color: var(--t1);
+}
+.btn-ghost:not(:disabled):hover {
+  background: var(--bg-hover);
+  border-color: var(--bd-str);
+}
+
+.btn-danger {
+  background: var(--danger-dim);
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  color: var(--danger);
+}
+.btn-danger:not(:disabled):hover {
+  background: rgba(239, 68, 68, 0.24);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.btn-sm {
+  padding: 7px 12px;
+  font-size: 13px;
+  border-radius: var(--r-sm);
+}
+
+/* Export highlight in done phase */
+body[data-phase="done"] #exportBtn:not(:disabled) {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(91, 127, 255, 0.42);
+}
+
+/* ─── 8. Controls card ──────────────────────────────────────── */
+.controls-card { margin-bottom: 12px; }
+
+.controls-top {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Upload zone */
+.controls-upload {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.upload-zone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--r-md);
+  border: 1px dashed var(--bd-def);
+  background: var(--bg-raised);
+  cursor: pointer;
+  transition:
+    border-color var(--t-fast),
+    background   var(--t-fast),
+    box-shadow   var(--t-fast);
+  min-width: 0;
+  overflow: hidden;
+}
+.upload-zone:hover,
+.upload-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.upload-zone.drag-over {
+  box-shadow: var(--accent-glow);
+}
+.upload-zone.has-files {
+  border-style: solid;
+  border-color: var(--bd-str);
+}
+
+.upload-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--t2);
+  flex-shrink: 0;
+  transition: color var(--t-fast);
+}
+.upload-zone:hover .upload-icon,
+.upload-zone.drag-over .upload-icon { color: var(--accent); }
+
+.upload-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--t2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--t-fast);
+}
+.upload-text em {
+  font-style: normal;
+  color: var(--t3);
+  font-size: 12px;
+}
+.upload-zone:hover .upload-text { color: var(--t1); }
+
+#fileInput { display: none; }
+
+/* Slot config */
+.controls-config {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.config-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t3);
+  white-space: nowrap;
+}
+
+.controls-btns {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ─── 9. Segmented control ──────────────────────────────────── */
+.segmented {
+  display: inline-flex;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--bd-def);
+  background: var(--bg-raised);
+  overflow: hidden;
+  padding: 2px;
+  gap: 2px;
+}
+
+.seg-btn {
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--t2);
+  background: transparent;
+  border-radius: calc(var(--r-sm) - 2px);
+  line-height: 1;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.seg-btn:hover { background: var(--bg-hover); color: var(--t1); }
+.seg-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+.seg-btn:disabled { opacity: 0.35; pointer-events: none; }
+
+/* ─── 10. Session bar ───────────────────────────────────────── */
+.session-bar {
+  display: none;
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid var(--bd-sub);
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+body[data-phase="ranking"] .session-bar,
+body[data-phase="done"]    .session-bar { display: flex; }
+
+.session-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.session-pills   { display: flex; gap: 6px; }
+
+/* ─── 11. Controls expandable body ─────────────────────────── */
+.controls-body       { display: none; }
+.controls-body.open  { display: block; animation: fade-in var(--t-mid) var(--ease); }
+
+.body-hint {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.55;
+}
+
+.uploads-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* ─── 12. Uploads grid ──────────────────────────────────────── */
+.uploads-grid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (min-width: 540px) { .uploads-grid { grid-template-columns: repeat(6, 1fr);  } }
+@media (min-width: 980px) { .uploads-grid { grid-template-columns: repeat(10, 1fr); } }
+
+.u-thumb {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--bd-sub);
+  background: var(--bg-raised);
+  transition: opacity var(--t-fast);
+}
+.u-thumb:hover { opacity: 0.75; }
+
+/* ─── 13. Rank slots ────────────────────────────────────────── */
+.rank-slots { display: grid; gap: 8px; }
+
+.slot {
+  display: grid;
+  grid-template-columns: 36px 54px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+  border: 1px dashed var(--bd-def);
+  min-height: 78px;
+  cursor: pointer;
+  transition:
+    border-color var(--t-fast) var(--ease),
+    background   var(--t-fast) var(--ease),
+    box-shadow   var(--t-fast) var(--ease),
+    transform    var(--t-fast) var(--ease);
+}
+.slot:hover:not(.filled) {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  transform: translateX(2px);
+}
+.slot.filled {
+  border-style: solid;
+  border-color: var(--bd-def);
+  cursor: default;
+}
+.slot.drop-ready {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: var(--accent-glow);
+  transform: scale(1.015);
+}
+
+/* Rank number */
+.slot-num {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-align: center;
+  color: var(--t3);
+  transition: color var(--t-mid);
+}
+.slot[data-rank="1"]  .slot-num { color: var(--r1); }
+.slot[data-rank="2"]  .slot-num { color: var(--r2); }
+.slot[data-rank="3"]  .slot-num { color: var(--r3); }
+
+/* Thumbnail */
+.slot-thumb {
+  width: 54px;
+  aspect-ratio: 2/3;
+  border-radius: var(--r-sm);
+  object-fit: cover;
+  border: 1px solid var(--bd-def);
+  background: var(--bg-base);
+  transition: opacity var(--t-mid);
+}
+.slot:not(.filled) .slot-thumb { opacity: 0; }
+.slot.filled .slot-thumb       { opacity: 1; }
+
+/* Text body */
+.slot-body { min-width: 0; }
+.slot-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--t1);
+  letter-spacing: -0.01em;
+}
+.slot-hint {
+  font-size: 11px;
+  color: var(--t3);
+  margin-top: 3px;
+}
+
+/* Status badge */
+.slot-badge { flex-shrink: 0; }
+.slot.filled .slot-badge {
+  border-color: rgba(52, 211, 153, 0.28);
+  color: var(--success);
+  background: var(--success-dim);
+}
+
+/* Rank border accents when filled */
+.slot[data-rank="1"].filled { border-color: rgba(245, 166, 35,  0.28); }
+.slot[data-rank="2"].filled { border-color: rgba(156, 163, 175, 0.25); }
+.slot[data-rank="3"].filled { border-color: rgba(184, 115, 51,  0.28); }
+
+/* Fill pop animation */
+@keyframes slot-pop {
+  0%   { transform: scale(1);    }
+  35%  { transform: scale(1.03); }
+  100% { transform: scale(1);    }
+}
+.slot.just-filled { animation: slot-pop var(--t-mid) var(--ease) both; }
+
+/* ─── 14. Current cover ─────────────────────────────────────── */
+.current-wrap {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg-base);
+  border: 1px solid var(--bd-sub);
+  user-select: none;
+  transition: opacity var(--t-fast);
+}
+.current-wrap.dragging { opacity: 0.48; }
+
+.current-img {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: contain;
+  background: var(--bg-base);
+  display: none;
+}
+.current-img.visible {
+  display: block;
+  animation: img-reveal var(--t-mid) var(--ease) both;
+}
+@keyframes img-reveal {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+/* Empty states */
+.current-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  aspect-ratio: 2/3;
+  padding: 28px;
+  text-align: center;
+  color: var(--t3);
+}
+
+.empty-idle svg,
+.empty-done svg {
+  width: 52px;
+  height: 52px;
+  opacity: 0.35;
+}
+.empty-done svg { opacity: 0.8; color: var(--success); }
+
+.empty-idle p,
+.empty-done p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--t3);
+}
+.empty-done p { color: var(--t2); }
+.empty-done strong { color: var(--t1); }
+
+/* Overlay hint bar */
+.current-meta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 12px 12px;
+  display: none;
+  justify-content: flex-end;
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);
+}
+.current-wrap.has-image .current-meta { display: flex; }
+
+/* ─── 15. Sticky bar ────────────────────────────────────────── */
+.sticky-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  background: rgba(6, 7, 17, 0.88);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-top: 1px solid var(--bd-def);
+}
+body[data-phase="ranking"] .sticky-bar,
+body[data-phase="done"]    .sticky-bar { display: flex; }
+
+.sticky-inner {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sticky-msg {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sticky-track {
+  height: 2px;
+  background: var(--bd-sub);
+  overflow: hidden;
+}
+.sticky-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--accent), var(--accent-hi));
+  transition: width var(--t-mid) var(--ease);
+}
+
+/* ─── 16. Keyframes ─────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ─── 17. Reduced motion ────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:   0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration:  0.01ms !important;
+  }
+}
