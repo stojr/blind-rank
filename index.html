@@ -143,6 +143,9 @@
             </svg>
             <p>All <span id="doneCount">5</span> covers ranked!<br/>
                Hit <strong>Export</strong> to save.</p>
+            <button class="btn btn-ghost btn-sm reveal-btn" id="revealNamesBtn" hidden>
+              Show names
+            </button>
           </div>
         </div>
 
@@ -166,6 +169,19 @@
   </div>
   <div class="sticky-track">
     <div class="sticky-fill" id="stickyFill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- ── Reset confirmation modal ───────────────────────────── -->
+<div class="modal" id="resetModal" hidden>
+  <div class="modal-backdrop" id="resetModalBackdrop"></div>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
+    <p class="modal-title" id="resetModalTitle">Reset everything?</p>
+    <p class="modal-desc">This will clear all uploads and ranking progress. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="resetCancelBtn">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="resetConfirmBtn">Reset</button>
+    </div>
   </div>
 </div>
 

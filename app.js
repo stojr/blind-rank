@@ -45,14 +45,22 @@ const emptyIdleEl    = document.getElementById("emptyIdle");
 const emptyDoneEl    = document.getElementById("emptyDone");
 const doneCountEl    = document.getElementById("doneCount");
 const placeHintEl    = document.getElementById("placeHint");
+const revealNamesBtn = document.getElementById("revealNamesBtn");
+
+const resetModal         = document.getElementById("resetModal");
+const resetModalBackdrop = document.getElementById("resetModalBackdrop");
+const resetCancelBtn     = document.getElementById("resetCancelBtn");
+const resetConfirmBtn    = document.getElementById("resetConfirmBtn");
 
 /* ── State ────────────────────────────────────────────────────── */
-let totalSlots   = 5;
-let allImages    = [];
-let pickedImages = [];
-let currentIndex = 0;
-let slots        = [];
-let history      = [];
+let totalSlots      = 5;
+let allImages       = [];
+let pickedImages    = [];
+let currentIndex    = 0;
+let slots           = [];
+let history         = [];
+let swapSourceIndex = null;
+let namesRevealed   = false;
 
 /* ── Phase management ─────────────────────────────────────────── */
 function setPhase(phase) {
@@ -139,16 +147,61 @@ function updateQueueUI() {
 /* ── Render uploads grid ──────────────────────────────────────── */
 function renderUploadsGrid() {
   uploadsGridEl.innerHTML = "";
-  for (const item of allImages) {
+  const isRanking = document.body.dataset.phase === "ranking";
+
+  allImages.forEach((item, idx) => {
+    const wrap = document.createElement("div");
+    wrap.className = "u-thumb-wrap";
+
     const img = document.createElement("img");
     img.className = "u-thumb";
     img.src = item.url;
     img.alt = "";
-    uploadsGridEl.appendChild(img);
-  }
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className   = "u-thumb-remove";
+    removeBtn.textContent = "✕";
+    removeBtn.title       = "Remove image";
+    removeBtn.disabled    = isRanking;
+    removeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeImage(idx);
+    });
+
+    wrap.appendChild(img);
+    wrap.appendChild(removeBtn);
+    uploadsGridEl.appendChild(wrap);
+  });
+
   const n = allImages.length;
   uploadsCountEl.textContent = `${n}`;
   loadedPill.textContent     = `${n} loaded`;
+}
+
+/* ── Remove a single image from the pool ─────────────────────── */
+function removeImage(idx) {
+  URL.revokeObjectURL(allImages[idx].url);
+  allImages.splice(idx, 1);
+  renderUploadsGrid();
+
+  const n = allImages.length;
+  uploadsCountEl.textContent = `${n}`;
+  loadedPill.textContent     = `${n} loaded`;
+
+  startBtn.disabled          = n < totalSlots;
+  resetBtn.disabled          = n === 0;
+  toggleControlsBtn.disabled = n === 0;
+
+  if (n === 0) {
+    setStatus("Load images");
+    setPhase("idle");
+  } else if (n < totalSlots) {
+    setStatus(`Need ${totalSlots}. Loaded ${n}`);
+    setPhase("ready");
+  } else {
+    setStatus("Ready");
+    setPhase("ready");
+  }
 }
 
 /* ── Render rank slots ────────────────────────────────────────── */
@@ -186,8 +239,13 @@ function renderSlots() {
     hint.className   = "slot-hint";
     hint.textContent = filled ? "Locked in" : "Tap or drop here";
 
+    const nameEl = document.createElement("div");
+    nameEl.className   = "slot-name";
+    nameEl.textContent = filled ? slots[i].name : "";
+
     body.appendChild(label);
     body.appendChild(hint);
+    body.appendChild(nameEl);
 
     /* Status badge */
     const badge = document.createElement("span");
@@ -199,21 +257,60 @@ function renderSlots() {
     slot.appendChild(body);
     slot.appendChild(badge);
 
-    /* Events — only on empty slots */
-    if (!filled) {
+    /* Events */
+    if (filled) {
+      /* Filled slots — draggable for swap reordering */
+      slot.draggable = true;
+      slot.addEventListener("dragstart", (e) => {
+        swapSourceIndex = i;
+        slot.classList.add("drag-source");
+        e.dataTransfer.setData("text/plain", "swap");
+        e.dataTransfer.effectAllowed = "move";
+      });
+      slot.addEventListener("dragend", () => {
+        slot.classList.remove("drag-source");
+        document.querySelectorAll(".slot").forEach(s => {
+          s.classList.remove("drop-ready", "drop-swap-ready");
+        });
+        swapSourceIndex = null;
+      });
+    } else {
+      /* Empty slots — accept placement from current card */
       slot.addEventListener("click", () => placeIntoSlot(i));
-      slot.addEventListener("dragover", (e) => {
-        if (!currentCardEl.draggable) return;
-        e.preventDefault();
-        slot.classList.add("drop-ready");
-      });
-      slot.addEventListener("dragleave", () => slot.classList.remove("drop-ready"));
-      slot.addEventListener("drop", (e) => {
-        e.preventDefault();
-        slot.classList.remove("drop-ready");
-        placeIntoSlot(i);
-      });
     }
+
+    /* All slots — dragover / dragleave / drop */
+    slot.addEventListener("dragover", (e) => {
+      if (!e.dataTransfer.types.includes("text/plain")) return;
+      e.preventDefault();
+      if (swapSourceIndex !== null && swapSourceIndex !== i && filled) {
+        /* Swap target: a different filled slot */
+        slot.classList.add("drop-swap-ready");
+      } else if (swapSourceIndex === null && !filled && currentCardEl.draggable) {
+        /* Placement target: empty slot while dragging current cover */
+        slot.classList.add("drop-ready");
+      }
+    });
+    slot.addEventListener("dragleave", () => {
+      slot.classList.remove("drop-ready", "drop-swap-ready");
+    });
+    slot.addEventListener("drop", (e) => {
+      e.preventDefault();
+      slot.classList.remove("drop-ready", "drop-swap-ready");
+      const payload = e.dataTransfer.getData("text/plain");
+      if (payload === "swap" && swapSourceIndex !== null && swapSourceIndex !== i && filled) {
+        /* Execute swap */
+        [slots[swapSourceIndex], slots[i]] = [slots[i], slots[swapSourceIndex]];
+        history.push({ type: "swap", a: swapSourceIndex, b: i });
+        undoBtn.disabled = false;
+        renderSlots();
+        /* Preserve names-on state across re-render */
+        if (namesRevealed) rankSlotsEl.classList.add("names-on");
+      } else if (payload === "current" && !filled) {
+        placeIntoSlot(i);
+      }
+      swapSourceIndex = null;
+    });
 
     rankSlotsEl.appendChild(slot);
   }
@@ -238,6 +335,12 @@ function showCurrent() {
     emptyIdleEl.hidden = true;
     emptyDoneEl.hidden = false;
     if (doneCountEl) doneCountEl.textContent = totalSlots;
+
+    /* Show name reveal toggle */
+    revealNamesBtn.hidden = false;
+    namesRevealed = false;
+    revealNamesBtn.textContent = "Show names";
+    rankSlotsEl.classList.remove("names-on");
 
     placeHintEl.textContent = "Export ready";
     return;
@@ -286,7 +389,7 @@ function placeIntoSlot(slotIndex) {
   if (!item) return;
 
   slots[slotIndex] = item;
-  history.push({ slotIndex, item });
+  history.push({ type: "place", slotIndex, item });
   undoBtn.disabled = false;
 
   renderSlots();
@@ -306,25 +409,40 @@ function placeIntoSlot(slotIndex) {
   advance();
 }
 
-/* ── Undo last placement ──────────────────────────────────────── */
+/* ── Undo last placement or swap ──────────────────────────────── */
 function undoLast() {
   if (!history.length) return;
 
   const last = history.pop();
-  slots[last.slotIndex] = null;
-  if (currentIndex > 0) currentIndex--;
-
   undoBtn.disabled = history.length === 0;
 
-  renderSlots();
-  updateProgressUI();
-  updateQueueUI();
+  if (last.type === "swap") {
+    /* Reverse the swap — no change to currentIndex */
+    [slots[last.a], slots[last.b]] = [slots[last.b], slots[last.a]];
+    renderSlots();
+    if (namesRevealed) rankSlotsEl.classList.add("names-on");
+    updateProgressUI();
+    /* Stay in current phase (ranking or done) */
+  } else {
+    /* Reverse a placement */
+    slots[last.slotIndex] = null;
+    if (currentIndex > 0) currentIndex--;
 
-  setPhase("ranking");
-  setStatus(`Place your top ${totalSlots}`);
-  stickyMsg.textContent = "Place the current cover into a slot";
+    /* Hide name reveal if we're leaving the done state */
+    revealNamesBtn.hidden = true;
+    namesRevealed = false;
+    rankSlotsEl.classList.remove("names-on");
 
-  showCurrent();
+    renderSlots();
+    updateProgressUI();
+    updateQueueUI();
+
+    setPhase("ranking");
+    setStatus(`Place your top ${totalSlots}`);
+    stickyMsg.textContent = "Place the current cover into a slot";
+
+    showCurrent();
+  }
 }
 
 /* ── Portrait lock ────────────────────────────────────────────── */
@@ -358,6 +476,11 @@ function startRun() {
   renderSlots();
   updateProgressUI();
   updateQueueUI();
+
+  /* Reset name reveal */
+  revealNamesBtn.hidden = true;
+  namesRevealed = false;
+  rankSlotsEl.classList.remove("names-on");
 
   /* Reset current card to empty state before showCurrent() */
   currentImgEl.classList.remove("visible");
@@ -410,6 +533,11 @@ function resetAll() {
   emptyIdleEl.hidden = false;
   emptyDoneEl.hidden = true;
   placeHintEl.textContent = "Place it";
+
+  /* Name reveal */
+  revealNamesBtn.hidden = true;
+  namesRevealed = false;
+  rankSlotsEl.classList.remove("names-on");
 
   /* Upload zone */
   uploadZone.classList.remove("has-files");
@@ -695,7 +823,29 @@ newRunBtn.addEventListener("click", async () => {
 
 undoBtn.addEventListener("click", undoLast);
 exportBtn.addEventListener("click", exportRanking);
-resetBtn.addEventListener("click", resetAll);
+resetBtn.addEventListener("click", showResetModal);
+
+/* ── Reset modal ──────────────────────────────────────────────── */
+function showResetModal() {
+  resetModal.hidden = false;
+}
+function hideResetModal() {
+  resetModal.hidden = true;
+}
+
+resetCancelBtn.addEventListener("click", hideResetModal);
+resetModalBackdrop.addEventListener("click", hideResetModal);
+resetConfirmBtn.addEventListener("click", () => {
+  hideResetModal();
+  resetAll();
+});
+
+/* ── Name reveal toggle ───────────────────────────────────────── */
+revealNamesBtn.addEventListener("click", () => {
+  namesRevealed = !namesRevealed;
+  rankSlotsEl.classList.toggle("names-on", namesRevealed);
+  revealNamesBtn.textContent = namesRevealed ? "Hide names" : "Show names";
+});
 
 /* ── Initialise ───────────────────────────────────────────────── */
 resetAll();

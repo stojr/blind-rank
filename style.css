@@ -500,8 +500,9 @@ body[data-phase="done"]    .session-bar { display: flex; }
 .slot.filled {
   border-style: solid;
   border-color: var(--bd-def);
-  cursor: default;
+  cursor: grab;
 }
+.slot.filled:active { cursor: grabbing; }
 .slot.drop-ready {
   border-color: var(--accent);
   background: var(--accent-dim);
@@ -690,13 +691,117 @@ body[data-phase="done"]    .sticky-bar { display: flex; }
   transition: width var(--t-mid) var(--ease);
 }
 
-/* ─── 16. Keyframes ─────────────────────────────────────────── */
+/* ─── 16. Upload thumbnail remove button ───────────────────── */
+.u-thumb-wrap {
+  position: relative;
+  display: block;
+}
+.u-thumb-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-sm);
+  background: rgba(6, 7, 17, 0.78);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: var(--danger);
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--t-fast), background var(--t-fast);
+  z-index: 1;
+  cursor: pointer;
+}
+.u-thumb-wrap:hover .u-thumb-remove { opacity: 1; }
+.u-thumb-remove:hover { background: var(--danger-dim); }
+.u-thumb-remove:disabled { display: none; }
+
+/* ─── 17. Reset confirmation modal ─────────────────────────── */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal[hidden] { display: none; }
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.modal-box {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--bd-str);
+  border-radius: var(--r-xl);
+  padding: 24px;
+  max-width: 360px;
+  width: calc(100% - 32px);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8);
+  animation: modal-pop var(--t-mid) var(--ease) both;
+}
+@keyframes modal-pop {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-title {
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.modal-desc {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ─── 18. Slot reordering ───────────────────────────────────── */
+.slot.drag-source    { opacity: 0.45; }
+.slot.drop-swap-ready {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: var(--accent-glow);
+}
+
+/* ─── 19. Name reveal ───────────────────────────────────────── */
+.reveal-btn { margin-top: 14px; }
+
+.slot-name {
+  display: none;
+  font-size: 11px;
+  color: var(--t3);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rank-slots.names-on .slot-name { display: block; }
+.rank-slots.names-on .slot-hint { display: none;  }
+
+/* ─── 20. Keyframes ─────────────────────────────────────────── */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0);   }
 }
 
-/* ─── 17. Reduced motion ────────────────────────────────────── */
+/* ─── 21. Reduced motion ────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration:   0.01ms !important;
